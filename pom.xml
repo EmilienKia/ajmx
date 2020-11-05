@@ -9,13 +9,28 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Annotated JMX processor :: Base repository</name>
+    <url>https://github.com/EmilienKia/ajmx</url>
     <inceptionYear>2020</inceptionYear>
+
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
             <url>http://www.apache.org/licenses/LICENSE-2.0</url>
         </license>
     </licenses>
+
+    <developers>
+        <developer>
+            <name>Emilien Kia</name>
+            <email>emilien.kia+dev@gmail.com</email>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/emilienkia/ajmx.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com:emilienkia/ajmx.git</developerConnection>
+        <url>https://github.com/emilienkia/ajmx</url>
+    </scm>
 
     <modules>
         <module>ajmx</module>
