@@ -1,0 +1,6 @@
+language: jav
+dist: focal
+jdk:
+  - openjdk11
+script:
+  - mvn verify -B
