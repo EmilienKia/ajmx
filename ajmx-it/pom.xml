@@ -6,7 +6,7 @@
 
     <parent>
         <groupId>com.github.emilienkia</groupId>
-        <version>1.0-SNAPSHOT</version>
+        <version>0.1.0-SNAPSHOT</version>
         <artifactId>ajmx-root</artifactId>
         <relativePath>../pom.xml</relativePath>
     </parent>
@@ -139,10 +139,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
-            <!--plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-            </plugin-->
             <!-- Needed if you use versionAsInProject() -->
             <plugin>
                 <groupId>org.apache.servicemix.tooling</groupId>
