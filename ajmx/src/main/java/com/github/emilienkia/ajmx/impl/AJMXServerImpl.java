@@ -3,41 +3,19 @@ package com.github.emilienkia.ajmx.impl;
 import com.github.emilienkia.ajmx.AJMXServer;
 import com.github.emilienkia.ajmx.annotations.MBean;
 import com.github.emilienkia.ajmx.annotations.MBeanAttribute;
+import com.github.emilienkia.ajmx.annotations.MBeanOperation;
+import com.github.emilienkia.ajmx.annotations.MBeanOperationParam;
 import com.github.emilienkia.ajmx.exceptions.NotAnAMBean;
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.osgi.service.component.annotations.ReferencePolicy;
+import org.osgi.service.component.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.management.Attribute;
-import javax.management.AttributeList;
-import javax.management.AttributeNotFoundException;
-import javax.management.DynamicMBean;
-import javax.management.InstanceAlreadyExistsException;
-import javax.management.InvalidAttributeValueException;
-import javax.management.JMException;
-import javax.management.MBeanAttributeInfo;
-import javax.management.MBeanConstructorInfo;
-import javax.management.MBeanException;
-import javax.management.MBeanInfo;
-import javax.management.MBeanNotificationInfo;
-import javax.management.MBeanOperationInfo;
-import javax.management.MBeanRegistrationException;
-import javax.management.MBeanServer;
-import javax.management.MalformedObjectNameException;
-import javax.management.NotCompliantMBeanException;
-import javax.management.ObjectName;
-import javax.management.ReflectionException;
+import javax.management.*;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component(immediate = true, service = AJMXServer.class)
@@ -62,21 +40,13 @@ public class AJMXServerImpl implements AJMXServer {
     @Activate
     public final void start(){
         logger.info("Started");
+        System.out.println("AJMXServerImpl started");
     }
 
     @Deactivate
     public final void stop(){
         logger.info("Stopped");
-    }
-
-    @Reference(cardinality = ReferenceCardinality.MULTIPLE, service = Object.class, policy = ReferencePolicy.DYNAMIC)
-    public void bindAMBean(Object obj) throws JMException {
-        logger.info("Bind object as MBean : {}", obj);
-        registerAMBean(obj);
-    }
-
-    public void unbindAMBean(Object obj) throws JMException {
-        unregisterAMBean(obj);
+        System.out.println("AJMXServerImpl stopped");
     }
 
     ClassDescriptor getDescriptor(Class<?> clazz) {
@@ -231,12 +201,90 @@ public class AJMXServerImpl implements AJMXServer {
             }
         }
 
+        public class OperationDescriptor {
+            MBeanOperation op;
+            Method method;
+            String name;
+            String description;
+
+            MBeanOperationInfo info;
+
+            public OperationDescriptor(Method method, MBeanOperation op) {
+                this.method = method;
+                this.op = op;
+                introspect();
+            }
+
+            private MBeanParameterInfo introspectParameter(int idx, Class<?> type, Annotation[] annots) {
+                MBeanOperationParam paramAnnot = Arrays.stream(annots)
+                        .map(MBeanOperationParam.class::cast)
+                        .filter(Objects::nonNull)
+                        .findAny().orElse(null);
+
+                String name = null, description = null;
+                if(paramAnnot!=null) {
+                    name = paramAnnot.name();
+                    description = paramAnnot.description();
+                }
+                if(name==null || name .isEmpty()) {
+                    name = "param" + idx;
+                }
+
+                return new MBeanParameterInfo(name, getTypeName(type), description);
+            }
+
+            private MBeanParameterInfo[] introspectSignature() {
+                Class<?>[] parameterTypes = method.getParameterTypes();
+                Annotation[][] annotations = method.getParameterAnnotations();
+                List<MBeanParameterInfo> params = new ArrayList<>();
+                for(int p=0; p<method.getParameterCount(); p++) {
+                    params.add(introspectParameter(p, parameterTypes[p], annotations[p]));
+                }
+                return params.toArray(new MBeanParameterInfo[params.size()]);
+            }
+
+            protected void introspect() {
+                method.setAccessible(true);
+
+                if(!op.name().isEmpty()) {
+                    name = op.name();
+                } else {
+                    name = method.getName();
+                }
+
+                if(!op.description().isEmpty()) {
+                    description = op.description();
+                }
+
+                info = new MBeanOperationInfo(name, description, introspectSignature(),
+                        getTypeName(method.getReturnType()), op.impact().value());
+            }
+
+            public String getName() {
+                return name;
+            }
+
+            public String getDescription() {
+                return description;
+            }
+
+            public MBeanOperationInfo getInfo() {
+                return info;
+            }
+
+            public Object invoke(Object obj, Object... params) throws InvocationTargetException, IllegalAccessException {
+                return method.invoke(obj, params);
+            }
+        }
+
         Class<?> clazz;
         MBean annot;
         String domain = null;
         MBeanInfo info = null;
 
         Map<String, AttributeDescriptor> attributes = new HashMap<>();
+        Map<String, OperationDescriptor> operations = new HashMap<>();
+
 
         public ClassDescriptor(Class<?> clazz, MBean annot) {
             this.clazz = clazz;
@@ -293,6 +341,20 @@ public class AJMXServerImpl implements AJMXServer {
             }
         }
 
+        public Object invoke(String name, Object obj, Object ... params) throws MBeanException, ReflectionException {
+            OperationDescriptor operation = operations.get(name);
+            if(operation!=null) {
+                try {
+                    return operation.invoke(obj, params);
+                } catch (InvocationTargetException | IllegalAccessException e) {
+                    throw new MBeanException(e);
+                }
+            } else {
+                // TODO use more suitable esxception class
+                throw new RuntimeException("No operation named '"+name+"'");
+            }
+        }
+
         void introspect() {
             // Look for annoted attributes.
             for (Field field : clazz.getDeclaredFields()) {
@@ -303,10 +365,19 @@ public class AJMXServerImpl implements AJMXServer {
                 }
             }
 
+            // Look for annoted operations.
+            for (Method method : clazz.getDeclaredMethods()) {
+                MBeanOperation op = method.getAnnotation(MBeanOperation.class);
+                if(op!=null) {
+                    OperationDescriptor desc = new OperationDescriptor(method, op);
+                    operations.put(desc.getName(), desc);
+                }
+            }
+
             info = new MBeanInfo(clazz.getName(), getDescription(),
                     attributes.values().stream().map(AttributeDescriptor::getInfo).toArray(size -> new MBeanAttributeInfo[size]),
                     new MBeanConstructorInfo[]{},
-                    new MBeanOperationInfo[]{},
+                    operations.values().stream().map(OperationDescriptor::getInfo).toArray(size -> new MBeanOperationInfo[size]),
                     new MBeanNotificationInfo[]{}
             );
         }
@@ -434,7 +505,8 @@ public class AJMXServerImpl implements AJMXServer {
 
         @Override
         public Object invoke(String actionName, Object[] params, String[] signature) throws MBeanException, ReflectionException {
-            throw new RuntimeException("Not implemented yet");
+            // TODO Use signature to find suitable method to invoke
+            return descriptor.invoke(actionName, object, params);
         }
 
         @Override

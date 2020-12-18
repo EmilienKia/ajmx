@@ -30,16 +30,7 @@ import org.ops4j.pax.exam.spi.reactors.PerSuite;
 import org.osgi.framework.Constants;
 
 import javax.inject.Inject;
-import javax.management.Attribute;
-import javax.management.AttributeList;
-import javax.management.AttributeNotFoundException;
-import javax.management.InstanceNotFoundException;
-import javax.management.JMException;
-import javax.management.MBeanAttributeInfo;
-import javax.management.MBeanInfo;
-import javax.management.MBeanServer;
-import javax.management.ObjectInstance;
-import javax.management.ObjectName;
+import javax.management.*;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -664,6 +655,33 @@ public class AJMXServerIT extends KarafTestSupport implements WithAssertions {
                         new Attribute("intAttr", 42),
                         new Attribute("strAttr", "Paf")
                 );
+    }
+
+
+    @Test
+    public void voidVoidOperationTest() throws JMException {
+        DomainTypeAnnot obj = new DomainTypeAnnot();
+        server.registerAMBean(obj, "test");
+        final ObjectName name = new ObjectName("this.is.test:type=MyType,name=test");
+        Object res = mbeanServer.invoke(name, "voidVoidOperation", new Object[0], new String[0]);
+        assertThat(res).isNull();
+    }
+
+    @Test
+    public void stringStringOperationTest() throws JMException {
+        DomainTypeAnnot obj = new DomainTypeAnnot();
+        server.registerAMBean(obj, "test");
+        final ObjectName name = new ObjectName("this.is.test:type=MyType,name=test");
+
+        Object[] params = new Object[] {
+                "World"
+        };
+        String[] signature = new String[] {
+                String.class.getName()
+        };
+
+        Object res = mbeanServer.invoke(name, "hello",params, signature);
+        assertThat(res).isNotNull().isInstanceOf(String.class).asString().isNotEmpty();
     }
 }
 

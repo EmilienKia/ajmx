@@ -13,11 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.w3c.dom.Attr;
 
-import javax.management.Attribute;
-import javax.management.AttributeList;
-import javax.management.AttributeNotFoundException;
-import javax.management.JMException;
-import javax.management.MBeanAttributeInfo;
+import javax.management.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -505,5 +501,31 @@ public class AJMXServerImplTest implements WithAssertions {
                         new Attribute("intAttr", 42),
                         new Attribute("strAttr", "Paf")
                 );
+    }
+
+    @Test
+    public void voidVoidOperationTest() throws ReflectionException, MBeanException {
+        DomainTypeAnnot obj = new DomainTypeAnnot();
+        Class<?> clazz = obj.getClass();
+        AJMXServerImpl.Instance inst = server.createInstance(obj, null, null);
+        Object res = inst.invoke("voidVoidOperation", new Object[0], new String[0]);
+        assertThat(res).isNull();
+    }
+
+    @Test
+    public void stringStringOperationTest() throws ReflectionException, MBeanException {
+        DomainTypeAnnot obj = new DomainTypeAnnot();
+        Class<?> clazz = obj.getClass();
+        AJMXServerImpl.Instance inst = server.createInstance(obj, null, null);
+
+        Object[] params = new Object[] {
+                "World"
+        };
+        String[] signature = new String[] {
+                String.class.getName()
+        };
+
+        Object res = inst.invoke("hello", params, signature);
+        assertThat(res).isNotNull().isInstanceOf(String.class).asString().isNotEmpty();
     }
 }

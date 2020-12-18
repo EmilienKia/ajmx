@@ -2,6 +2,8 @@ package com.github.emilienkia.ajmx.impl.entities;
 
 import com.github.emilienkia.ajmx.annotations.MBean;
 import com.github.emilienkia.ajmx.annotations.MBeanAttribute;
+import com.github.emilienkia.ajmx.annotations.MBeanOperation;
+import com.github.emilienkia.ajmx.annotations.MBeanOperationParam;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -51,4 +53,15 @@ public class DomainTypeAnnot {
     @MBeanAttribute(description = "This is a date attribute", accessMode = READ_WRITE)
     Date dateAttr = new Date(100, 1, 1, 0, 0, 0);
 
+    @MBeanOperation(description = "Method which takes no parameter and return nothing")
+    void voidVoidOperation() {
+    }
+
+    @MBeanOperation(name="hello", description = "Method taking a string and returning a string")
+    String sayHello(
+            @MBeanOperationParam(name = "name", description = "Who to say hello.")
+                    String name
+    ) {
+        return "Hello " + name + " !";
+    }
 }
