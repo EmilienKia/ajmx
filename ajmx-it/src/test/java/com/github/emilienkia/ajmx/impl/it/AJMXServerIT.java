@@ -58,7 +58,6 @@ public class AJMXServerIT extends KarafTestSupport implements WithAssertions {
     @ProbeBuilder
     public final TestProbeBuilder probeConfiguration(final TestProbeBuilder probe) {
         probe.setHeader(Constants.DYNAMICIMPORT_PACKAGE, "*,org.apache.felix.service.*;status=provisional");
-
         return probe;
     }
 
@@ -67,21 +66,21 @@ public class AJMXServerIT extends KarafTestSupport implements WithAssertions {
         return OptionUtils.combine(
                 super.config(),
                 karafDistributionConfiguration()
-                        .frameworkUrl("mvn:org.apache.karaf/apache-karaf/4.2.9/tar.gz")
-                        .karafVersion("4.2.9")
+                        .frameworkUrl(maven().groupId("org.apache.karaf").artifactId("apache-karaf").type("tar.gz").versionAsInProject())
                         .useDeployFolder(false)
                         .unpackDirectory(new File("target/pax-exam")),
                 logLevel(LogLevelOption.LogLevel.INFO),
-
-                // install features
-                features(maven().groupId("org.apache.karaf.features").artifactId("standard").type("xml").classifier("features").version("4.2.9"), "standard"),
-                features(maven().groupId("org.apache.karaf.features").artifactId("standard").type("xml").classifier("features").version("4.2.9"), "scr"),
-
                 keepRuntimeFolder(),
 
-                mavenBundle().groupId("org.assertj").artifactId("assertj-core").version("3.15.0"),
+                // Install runtime features
+                features(maven().groupId("org.apache.karaf.features").artifactId("standard").type("xml").classifier("features").versionAsInProject(), "standard"),
+                features(maven().groupId("org.apache.karaf.features").artifactId("standard").type("xml").classifier("features").versionAsInProject(), "scr"),
 
-                mavenBundle().groupId("com.github.emilienkia").artifactId("ajmx").version("1.0-SNAPSHOT")
+                // Test tooling
+                mavenBundle().groupId("org.assertj").artifactId("assertj-core").versionAsInProject(),
+
+                // Tested bundle
+                mavenBundle().groupId("com.github.emilienkia").artifactId("ajmx").versionAsInProject()
         );
     }
 
