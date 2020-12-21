@@ -64,4 +64,24 @@ public class DomainTypeAnnot {
     ) {
         return "Hello " + name + " !";
     }
+
+    @MBeanOperation(description="Make the sum of various integer types")
+    BigInteger sumIntegers(boolean negate, byte b, short s, int i, long l, BigInteger bi) {
+        bi = bi.add(new BigInteger(Long.toString(l)));
+        bi = bi.add(new BigInteger(Integer.toString(i)));
+        bi = bi.add(new BigInteger(Short.toString(s)));
+        bi = bi.add(new BigInteger(Byte.toString(b)));
+        if(negate) {
+            bi = bi.negate();
+        }
+        return bi;
+    }
+
+    @MBeanOperation(description="Make the sum of various decimal types")
+    double sumDecimals(float f, double d, BigDecimal bd) {
+        bd = bd.add(new BigDecimal(f));
+        bd = bd.add(new BigDecimal(d));
+        return bd.doubleValue();
+    }
+
 }

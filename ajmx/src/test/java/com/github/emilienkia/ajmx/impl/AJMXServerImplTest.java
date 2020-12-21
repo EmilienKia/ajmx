@@ -9,6 +9,7 @@ import com.github.emilienkia.ajmx.impl.entities.DomainTypeNameAnnot;
 import com.github.emilienkia.ajmx.impl.entities.EmptyAnnot;
 import com.github.emilienkia.ajmx.impl.entities.NoAnnot;
 import org.assertj.core.api.WithAssertions;
+import org.assertj.core.data.Offset;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3c.dom.Attr;
@@ -527,5 +528,55 @@ public class AJMXServerImplTest implements WithAssertions {
 
         Object res = inst.invoke("hello", params, signature);
         assertThat(res).isNotNull().isInstanceOf(String.class).asString().isNotEmpty();
+    }
+
+    @Test
+    public void integerOperationTest() throws ReflectionException, MBeanException {
+        DomainTypeAnnot obj = new DomainTypeAnnot();
+        Class<?> clazz = obj.getClass();
+        AJMXServerImpl.Instance inst = server.createInstance(obj, null, null);
+
+        Object[] params = new Object[] {
+                Boolean.TRUE,
+                Byte.valueOf("1"),
+                Short.valueOf("2"),
+                3,
+                4l,
+                BigInteger.TEN
+        };
+        String[] signature = new String[] {
+                Boolean.class.getName(),
+                Byte.class.getName(),
+                Short.class.getName(),
+                Integer.class.getName(),
+                Long.class.getName(),
+                BigInteger.class.getName()
+        };
+
+        Object res = inst.invoke("sumIntegers", params, signature);
+        assertThat(res).isNotNull().isInstanceOf(BigInteger.class)
+                .asInstanceOf(BIG_INTEGER).isEqualTo(-20);
+    }
+
+    @Test
+    public void decimalOperationTest() throws ReflectionException, MBeanException {
+        DomainTypeAnnot obj = new DomainTypeAnnot();
+        Class<?> clazz = obj.getClass();
+        AJMXServerImpl.Instance inst = server.createInstance(obj, null, null);
+
+        Object[] params = new Object[] {
+                1.2f,
+                3.4,
+                new BigDecimal("5.6")
+        };
+        String[] signature = new String[] {
+                Float.class.getName(),
+                Double.class.getName(),
+                BigDecimal.class.getName()
+        };
+
+        Object res = inst.invoke("sumDecimals", params, signature);
+        assertThat(res).isNotNull().isInstanceOf(Double.class)
+                .asInstanceOf(DOUBLE).isEqualTo( 10.2 , Offset.offset(0.0001) );
     }
 }
