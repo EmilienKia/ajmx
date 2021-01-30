@@ -6,24 +6,46 @@ import com.github.emilienkia.ajmx.annotations.MBeanAttribute;
 import com.github.emilienkia.ajmx.annotations.MBeanOperation;
 import com.github.emilienkia.ajmx.annotations.MBeanOperationParam;
 import com.github.emilienkia.ajmx.exceptions.NotAnAMBean;
-import org.osgi.service.component.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.management.*;
+import javax.management.Attribute;
+import javax.management.AttributeList;
+import javax.management.AttributeNotFoundException;
+import javax.management.DynamicMBean;
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.InvalidAttributeValueException;
+import javax.management.JMException;
+import javax.management.MBeanAttributeInfo;
+import javax.management.MBeanConstructorInfo;
+import javax.management.MBeanException;
+import javax.management.MBeanInfo;
+import javax.management.MBeanNotificationInfo;
+import javax.management.MBeanOperationInfo;
+import javax.management.MBeanParameterInfo;
+import javax.management.MBeanRegistrationException;
+import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
+import javax.management.NotCompliantMBeanException;
+import javax.management.ObjectName;
+import javax.management.ReflectionException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
-@Component(immediate = true, service = AJMXServer.class)
 public class AJMXServerImpl implements AJMXServer {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Reference
     MBeanServer mbeanServer = null;
 
     Map<Object, Instance> ambeans = new HashMap<>();
@@ -37,16 +59,20 @@ public class AJMXServerImpl implements AJMXServer {
         this.mbeanServer = mbeanServer;
     }
 
-    @Activate
-    public final void start(){
-        logger.info("Started");
-        System.out.println("AJMXServerImpl started");
+    public MBeanServer assignMbeanServer(MBeanServer server) {
+        MBeanServer old = mbeanServer;
+        if(mbeanServer!=null && mbeanServer!=server) {
+            // TODO unregister MBeans
+        }
+        mbeanServer = server;
+        if(server!=null) {
+            // TODO Register MBeans
+        }
+        return old;
     }
 
-    @Deactivate
-    public final void stop(){
-        logger.info("Stopped");
-        System.out.println("AJMXServerImpl stopped");
+    public boolean hasMBeanServer() {
+        return mbeanServer != null;
     }
 
     ClassDescriptor getDescriptor(Class<?> clazz) {
@@ -78,6 +104,7 @@ public class AJMXServerImpl implements AJMXServer {
 
     @Override
     public boolean hasAMBean(Object obj) {
+        // TODO
         return false;
     }
 
@@ -89,15 +116,6 @@ public class AJMXServerImpl implements AJMXServer {
     @Override
     public void registerAMBean(Object obj, String name) throws JMException {
         registerAMBean(obj, null, name);
-    }
-
-    Instance createInstance(Object obj, String type, String name) {
-        ClassDescriptor desc = getDescriptor(obj.getClass());
-        if(desc==null) {
-            logger.error("Object {} of class {} is not an AMbean", obj, obj.getClass().getName());
-            throw new NotAnAMBean();
-        }
-        return new Instance(obj, desc, type, name);
     }
 
     @Override
@@ -112,13 +130,35 @@ public class AJMXServerImpl implements AJMXServer {
         }
     }
 
+    Instance createInstance(Object obj, String type, String name) {
+        ClassDescriptor desc = getDescriptor(obj.getClass());
+        if(desc==null) {
+            logger.error("Object {} of class {} is not an AMbean", obj, obj.getClass().getName());
+            throw new NotAnAMBean();
+        }
+        return new Instance(obj, desc, type, name);
+    }
+
     @Override
     public void unregisterAMBean(Object obj) throws JMException {
         Instance instance = ambeans.get(obj);
         if (instance!=null) {
             logger.info("Unregister mbean : {}", instance);
             mbeanServer.unregisterMBean(instance.getObjectName());
+            ambeans.remove(obj);
         }
+    }
+
+    @Override
+    public void unregisterAllAMBeans() {
+        ambeans.values().forEach( instance -> {
+            try {
+                mbeanServer.unregisterMBean(instance.getObjectName());
+            } catch (Exception e) {
+                logger.error("Error while unregistering an ambean {}", instance, e);
+            }
+        });
+        ambeans.clear();
     }
 
     static String getTypeName(Class<?> clazz) {

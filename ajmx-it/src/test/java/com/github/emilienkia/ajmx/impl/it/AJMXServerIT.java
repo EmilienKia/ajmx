@@ -4,7 +4,6 @@ import com.github.emilienkia.ajmx.AJMXServer;
 import com.github.emilienkia.ajmx.annotations.MBean;
 import com.github.emilienkia.ajmx.annotations.MBeanAttribute;
 import com.github.emilienkia.ajmx.exceptions.NotAnAMBean;
-import com.github.emilienkia.ajmx.impl.AJMXServerImpl;
 import com.github.emilienkia.ajmx.impl.entities.DomainAnnot;
 import com.github.emilienkia.ajmx.impl.entities.DomainTypeAnnot;
 import com.github.emilienkia.ajmx.impl.entities.DomainTypeNameAnnot;
@@ -13,9 +12,9 @@ import com.github.emilienkia.ajmx.impl.entities.NoAnnot;
 import org.apache.karaf.itests.KarafTestSupport;
 import org.assertj.core.api.WithAssertions;
 import org.assertj.core.data.Offset;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
@@ -29,9 +28,19 @@ import org.ops4j.pax.exam.karaf.options.LogLevelOption;
 import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
 import org.ops4j.pax.exam.spi.reactors.PerSuite;
 import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceRegistration;
 
 import javax.inject.Inject;
-import javax.management.*;
+import javax.management.Attribute;
+import javax.management.AttributeList;
+import javax.management.AttributeNotFoundException;
+import javax.management.InstanceNotFoundException;
+import javax.management.JMException;
+import javax.management.MBeanAttributeInfo;
+import javax.management.MBeanInfo;
+import javax.management.MBeanServer;
+import javax.management.ObjectInstance;
+import javax.management.ObjectName;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -40,7 +49,10 @@ import java.util.List;
 
 import static org.ops4j.pax.exam.CoreOptions.maven;
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
-import static org.ops4j.pax.exam.karaf.options.KarafDistributionOption.*;
+import static org.ops4j.pax.exam.karaf.options.KarafDistributionOption.features;
+import static org.ops4j.pax.exam.karaf.options.KarafDistributionOption.karafDistributionConfiguration;
+import static org.ops4j.pax.exam.karaf.options.KarafDistributionOption.keepRuntimeFolder;
+import static org.ops4j.pax.exam.karaf.options.KarafDistributionOption.logLevel;
 
 @FixMethodOrder(value = MethodSorters.NAME_ASCENDING)
 @RunWith(PaxExam.class)
@@ -66,13 +78,13 @@ public class AJMXServerIT extends KarafTestSupport implements WithAssertions {
 
                 // Install runtime features
                 features(maven().groupId("org.apache.karaf.features").artifactId("standard").type("xml").classifier("features").versionAsInProject(), "standard"),
-                features(maven().groupId("org.apache.karaf.features").artifactId("standard").type("xml").classifier("features").versionAsInProject(), "scr"),
+                features(maven().groupId("org.apache.karaf.features").artifactId("standard").type("xml").classifier("features").versionAsInProject(), "management"),
 
                 // Test tooling
                 mavenBundle().groupId("org.assertj").artifactId("assertj-core").versionAsInProject(),
 
                 // Tested bundle
-                mavenBundle().groupId("com.github.emilienkia").artifactId("ajmx").versionAsInProject()
+                mavenBundle().groupId("com.github.emilienkia").artifactId("ajmx-osgi").versionAsInProject()
         );
     }
 
@@ -87,6 +99,29 @@ public class AJMXServerIT extends KarafTestSupport implements WithAssertions {
     public void setup() {
         assertThat(server).isNotNull();
         assertThat(mbeanServer).isNotNull();
+    }
+
+    @After
+    public void cleanup() throws Exception {
+        server.unregisterAllAMBeans();
+    }
+
+    @Test
+    public void testOsgiServiceWithAnnot() throws Exception {
+        DomainTypeNameAnnot obj = new DomainTypeNameAnnot();
+        ServiceRegistration<DomainTypeNameAnnot> registration = bundleContext.registerService(DomainTypeNameAnnot.class, obj, null);
+
+        ObjectName name = new ObjectName("this.is.test:type=MyType,name=AName");
+
+        // Object is found and published
+        ObjectInstance instance = mbeanServer.getObjectInstance(name);
+        assertThat(instance).isNotNull();
+
+        registration.unregister();
+
+        // Object is not found anymore.
+        Throwable thrown = catchThrowable(() -> mbeanServer.getObjectInstance(name));
+        assertThat(thrown).isInstanceOf(InstanceNotFoundException.class);
     }
 
     @Test

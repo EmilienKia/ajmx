@@ -53,4 +53,9 @@ public interface AJMXServer {
      */
     void unregisterAMBean(Object obj) throws JMException;
 
+    /**
+     * Unregister all AMBeans.
+     * @throws JMException
+     */
+    void unregisterAllAMBeans() throws JMException;
 }

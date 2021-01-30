@@ -25,6 +25,11 @@
             <artifactId>ajmx</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>ajmx-osgi</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- OSGI R6 -->
         <dependency>
