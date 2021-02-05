@@ -62,11 +62,23 @@ public class AjmxAdaptorImpl implements AjmxAdaptor {
     public MBeanServer assignMbeanServer(MBeanServer server) {
         MBeanServer old = mbeanServer;
         if(mbeanServer!=null && mbeanServer!=server) {
-            // TODO unregister MBeans
+            for(Instance bean : ambeans.values()) {
+                try {
+                    mbeanServer.unregisterMBean(bean.getObjectName());
+                } catch (JMException ex) {
+                    logger.error("Problem when unregistering object '{}'", bean.toString());
+                }
+            }
         }
         mbeanServer = server;
         if(server!=null) {
-            // TODO Register MBeans
+            for(Instance bean : ambeans.values()) {
+                try {
+                    mbeanServer.registerMBean(bean, bean.getObjectName());
+                } catch (JMException ex) {
+                    logger.error("Problem when registering object '{}'", bean.toString());
+                }
+            }
         }
         return old;
     }
@@ -123,7 +135,9 @@ public class AjmxAdaptorImpl implements AjmxAdaptor {
         Instance instance = createInstance(obj, type, name);
         logger.info("Register MBean : {}", instance.getObjectName());
         try {
-            mbeanServer.registerMBean(instance, instance.getObjectName());
+            if(mbeanServer!=null) {
+                mbeanServer.registerMBean(instance, instance.getObjectName());
+            }
             ambeans.put(obj, instance);
         } catch (MalformedObjectNameException | MBeanRegistrationException | InstanceAlreadyExistsException | NotCompliantMBeanException ex) {
             logger.error("Error while creating new ABean for object {} of type {}", obj, obj.getClass().getName(), ex);
@@ -144,20 +158,24 @@ public class AjmxAdaptorImpl implements AjmxAdaptor {
         Instance instance = ambeans.get(obj);
         if (instance!=null) {
             logger.info("Unregister mbean : {}", instance);
-            mbeanServer.unregisterMBean(instance.getObjectName());
+            if(mbeanServer!=null) {
+                mbeanServer.unregisterMBean(instance.getObjectName());
+            }
             ambeans.remove(obj);
         }
     }
 
     @Override
     public void unregisterAllAMBeans() {
-        ambeans.values().forEach( instance -> {
-            try {
-                mbeanServer.unregisterMBean(instance.getObjectName());
-            } catch (Exception e) {
-                logger.error("Error while unregistering an ambean {}", instance, e);
+        if(mbeanServer!=null) {
+            for (Instance instance : ambeans.values()) {
+                try {
+                    mbeanServer.unregisterMBean(instance.getObjectName());
+                } catch (Exception e) {
+                    logger.error("Error while unregistering an ambean {}", instance, e);
+                }
             }
-        });
+        }
         ambeans.clear();
     }
 
