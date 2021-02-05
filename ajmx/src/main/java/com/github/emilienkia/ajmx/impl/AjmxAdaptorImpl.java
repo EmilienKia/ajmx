@@ -401,15 +401,13 @@ public class AjmxAdaptorImpl implements AjmxAdaptor {
 
         public Object invoke(String name, Object obj, Object ... params) throws MBeanException {
             OperationDescriptor operation = operations.get(name);
-            if(operation!=null) {
-                try {
-                    return operation.invoke(obj, params);
-                } catch (InvocationTargetException | IllegalAccessException e) {
-                    throw new MBeanException(e);
-                }
-            } else {
-                // TODO use more suitable exception class
-                throw new RuntimeException("No operation named '"+name+"'");
+            if(operation==null) {
+                throw new IllegalArgumentException("Operation '" + name + "' not found for object of type '" + obj.getClass().getName() + "'");
+            }
+            try {
+                return operation.invoke(obj, params);
+            } catch (InvocationTargetException | IllegalAccessException e) {
+                throw new MBeanException(e);
             }
         }
 
