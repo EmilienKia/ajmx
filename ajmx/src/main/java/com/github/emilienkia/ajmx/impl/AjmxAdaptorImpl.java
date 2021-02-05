@@ -66,7 +66,7 @@ public class AjmxAdaptorImpl implements AjmxAdaptor {
                 try {
                     mbeanServer.unregisterMBean(bean.getObjectName());
                 } catch (JMException ex) {
-                    logger.error("Problem when unregistering object '{}'", bean.toString());
+                    logger.error("Problem when unregistering object '{}'", bean);
                 }
             }
         }
@@ -76,7 +76,7 @@ public class AjmxAdaptorImpl implements AjmxAdaptor {
                 try {
                     mbeanServer.registerMBean(bean, bean.getObjectName());
                 } catch (JMException ex) {
-                    logger.error("Problem when registering object '{}'", bean.toString());
+                    logger.error("Problem when registering object '{}'", bean);
                 }
             }
         }
@@ -116,8 +116,7 @@ public class AjmxAdaptorImpl implements AjmxAdaptor {
 
     @Override
     public boolean hasAMBean(Object obj) {
-        // TODO
-        return false;
+        return ambeans.get(obj)!=null;
     }
 
     @Override
