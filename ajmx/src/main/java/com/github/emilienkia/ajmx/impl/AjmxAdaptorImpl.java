@@ -165,6 +165,25 @@ public class AjmxAdaptorImpl implements AjmxAdaptor {
         return clazz.getTypeName();
     }
 
+    private static MBeanParameterInfo introspectParameter(int idx, Class<?> type, Annotation[] annots) {
+        MBeanOperationParam paramAnnot = Arrays.stream(annots)
+                .map(MBeanOperationParam.class::cast)
+                .filter(Objects::nonNull)
+                .findAny().orElse(null);
+
+        String name = null;
+        String description = null;
+        if(paramAnnot!=null) {
+            name = paramAnnot.name();
+            description = paramAnnot.description();
+        }
+        if(name==null || name .isEmpty()) {
+            name = "param" + idx;
+        }
+
+        return new MBeanParameterInfo(name, getTypeName(type), description);
+    }
+
     class ClassDescriptor {
 
         public class AttributeDescriptor {
@@ -253,24 +272,6 @@ public class AjmxAdaptorImpl implements AjmxAdaptor {
                 this.method = method;
                 this.op = op;
                 introspect();
-            }
-
-            private MBeanParameterInfo introspectParameter(int idx, Class<?> type, Annotation[] annots) {
-                MBeanOperationParam paramAnnot = Arrays.stream(annots)
-                        .map(MBeanOperationParam.class::cast)
-                        .filter(Objects::nonNull)
-                        .findAny().orElse(null);
-
-                String name = null, description = null;
-                if(paramAnnot!=null) {
-                    name = paramAnnot.name();
-                    description = paramAnnot.description();
-                }
-                if(name==null || name .isEmpty()) {
-                    name = "param" + idx;
-                }
-
-                return new MBeanParameterInfo(name, getTypeName(type), description);
             }
 
             private MBeanParameterInfo[] introspectSignature() {
@@ -381,7 +382,7 @@ public class AjmxAdaptorImpl implements AjmxAdaptor {
             }
         }
 
-        public Object invoke(String name, Object obj, Object ... params) throws MBeanException, ReflectionException {
+        public Object invoke(String name, Object obj, Object ... params) throws MBeanException {
             OperationDescriptor operation = operations.get(name);
             if(operation!=null) {
                 try {
