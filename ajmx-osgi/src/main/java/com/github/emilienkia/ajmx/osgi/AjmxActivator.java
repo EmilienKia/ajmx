@@ -67,8 +67,8 @@ public class AjmxActivator  implements BundleActivator {
                 boolean has = amBeanServer.hasMBeanServer();
                 if(has && registration==null) {
                     registration = context.registerService(AjmxAdaptor.class, amBeanServer, null);
-                } else if (!has && registration==null) {
-                    registration.unregister();;
+                } else if (!has && registration!=null) {
+                    registration.unregister();
                     registration = null;
                 }
             }
