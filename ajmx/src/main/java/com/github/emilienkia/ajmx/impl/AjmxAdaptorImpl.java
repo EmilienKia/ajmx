@@ -1,6 +1,6 @@
 package com.github.emilienkia.ajmx.impl;
 
-import com.github.emilienkia.ajmx.AJMXServer;
+import com.github.emilienkia.ajmx.AjmxAdaptor;
 import com.github.emilienkia.ajmx.annotations.MBean;
 import com.github.emilienkia.ajmx.annotations.MBeanAttribute;
 import com.github.emilienkia.ajmx.annotations.MBeanOperation;
@@ -42,7 +42,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class AJMXServerImpl implements AJMXServer {
+public class AjmxAdaptorImpl implements AjmxAdaptor {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -52,10 +52,10 @@ public class AJMXServerImpl implements AJMXServer {
 
     Map<Class<?>, ClassDescriptor> classDescs = new HashMap<>();
 
-    public AJMXServerImpl() {
+    public AjmxAdaptorImpl() {
     }
 
-    public AJMXServerImpl(MBeanServer mbeanServer) {
+    public AjmxAdaptorImpl(MBeanServer mbeanServer) {
         this.mbeanServer = mbeanServer;
     }
 
@@ -390,7 +390,7 @@ public class AJMXServerImpl implements AJMXServer {
                     throw new MBeanException(e);
                 }
             } else {
-                // TODO use more suitable esxception class
+                // TODO use more suitable exception class
                 throw new RuntimeException("No operation named '"+name+"'");
             }
         }

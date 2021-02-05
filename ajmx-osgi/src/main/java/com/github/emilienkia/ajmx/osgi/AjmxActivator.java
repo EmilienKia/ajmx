@@ -1,7 +1,7 @@
 package com.github.emilienkia.ajmx.osgi;
 
-import com.github.emilienkia.ajmx.AJMXServer;
-import com.github.emilienkia.ajmx.impl.AJMXServerImpl;
+import com.github.emilienkia.ajmx.AjmxAdaptor;
+import com.github.emilienkia.ajmx.impl.AjmxAdaptorImpl;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -22,9 +22,9 @@ public class AjmxActivator  implements BundleActivator {
     protected ServiceTracker<MBeanServer, MBeanServer> mbeanServerServiceTracker;
     protected ServiceTracker<Object, Object> objectServiceTracker;
 
-    protected AJMXServerImpl amBeanServer = new AJMXServerImpl();
+    protected AjmxAdaptorImpl amBeanServer = new AjmxAdaptorImpl();
 
-    private ServiceRegistration<AJMXServer> registration = null;
+    private ServiceRegistration<AjmxAdaptor> registration = null;
 
     @Override
     public void start(BundleContext context) throws Exception {
@@ -66,7 +66,7 @@ public class AjmxActivator  implements BundleActivator {
             private void updateServiceRegtistration() {
                 boolean has = amBeanServer.hasMBeanServer();
                 if(has && registration==null) {
-                    registration = context.registerService(AJMXServer.class, amBeanServer, null);
+                    registration = context.registerService(AjmxAdaptor.class, amBeanServer, null);
                 } else if (!has && registration==null) {
                     registration.unregister();;
                     registration = null;

@@ -1,6 +1,6 @@
 package com.github.emilienkia.ajmx.impl.it;
 
-import com.github.emilienkia.ajmx.AJMXServer;
+import com.github.emilienkia.ajmx.AjmxAdaptor;
 import com.github.emilienkia.ajmx.annotations.MBean;
 import com.github.emilienkia.ajmx.annotations.MBeanAttribute;
 import com.github.emilienkia.ajmx.exceptions.NotAnAMBean;
@@ -57,7 +57,7 @@ import static org.ops4j.pax.exam.karaf.options.KarafDistributionOption.logLevel;
 @FixMethodOrder(value = MethodSorters.NAME_ASCENDING)
 @RunWith(PaxExam.class)
 @ExamReactorStrategy(PerSuite.class)
-public class AJMXServerIT extends KarafTestSupport implements WithAssertions {
+public class AjmxAdaptorIT extends KarafTestSupport implements WithAssertions {
 
     @ProbeBuilder
     public final TestProbeBuilder probeConfiguration(final TestProbeBuilder probe) {
@@ -90,7 +90,7 @@ public class AJMXServerIT extends KarafTestSupport implements WithAssertions {
 
 
     @Inject
-    AJMXServer server;
+    AjmxAdaptor server;
 
     @Inject
     MBeanServer mbeanServer;

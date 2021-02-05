@@ -7,7 +7,7 @@ import javax.management.JMException;
 /**
  * Interface of Annoted JMX server proxy.
  */
-public interface AJMXServer {
+public interface AjmxAdaptor {
 
     /**
      * Test if an object is correctly annoted to be used as annoted MBean.

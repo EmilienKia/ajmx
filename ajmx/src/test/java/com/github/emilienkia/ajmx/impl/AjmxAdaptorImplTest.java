@@ -12,22 +12,19 @@ import org.assertj.core.api.WithAssertions;
 import org.assertj.core.data.Offset;
 import org.junit.Before;
 import org.junit.Test;
-import org.w3c.dom.Attr;
 
 import javax.management.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-public class AJMXServerImplTest implements WithAssertions {
+public class AjmxAdaptorImplTest implements WithAssertions {
 
-    AJMXServerImpl server;
+    AjmxAdaptorImpl server;
 
     @Before
     public void setup() {
-        server = new AJMXServerImpl();
+        server = new AjmxAdaptorImpl();
         assertThat(server).isNotNull();
     }
 
@@ -42,7 +39,7 @@ public class AJMXServerImplTest implements WithAssertions {
     public void emptyAnnotTest() throws JMException {
         EmptyAnnot obj = new EmptyAnnot();
         Class<?> clazz = obj.getClass();
-        AJMXServerImpl.Instance inst = server.createInstance(obj, null, null);
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
         assertThat(inst.getDomain()).isEqualTo(clazz.getPackage().getName());
         assertThat(inst.getType()).isEqualTo(clazz.getSimpleName());
         assertThat(inst.getName()).isNotEmpty().isNotBlank();
@@ -52,7 +49,7 @@ public class AJMXServerImplTest implements WithAssertions {
     public void domainAnnotTest() throws JMException {
         DomainAnnot obj = new DomainAnnot();
         Class<?> clazz = obj.getClass();
-        AJMXServerImpl.Instance inst = server.createInstance(obj, null, null);
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
         assertThat(inst.getDomain())
                 .isEqualTo(clazz.getAnnotation(MBean.class).domain())
                 .isNotEqualTo(clazz.getPackage().getName());
@@ -68,7 +65,7 @@ public class AJMXServerImplTest implements WithAssertions {
     public void domainAndTypeAnnotTest() throws JMException {
         DomainTypeAnnot obj = new DomainTypeAnnot();
         Class<?> clazz = obj.getClass();
-        AJMXServerImpl.Instance inst = server.createInstance(obj, null, null);
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
         assertThat(inst.getDomain())
                 .isEqualTo(clazz.getAnnotation(MBean.class).domain())
                 .isNotEqualTo(clazz.getPackage().getName());
@@ -86,7 +83,7 @@ public class AJMXServerImplTest implements WithAssertions {
     public void domainAndTypeandNameAnnotTest() throws JMException {
         DomainTypeNameAnnot obj = new DomainTypeNameAnnot();
         Class<?> clazz = obj.getClass();
-        AJMXServerImpl.Instance inst = server.createInstance(obj, null, null);
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
         assertThat(inst.getDomain())
                 .isEqualTo(clazz.getAnnotation(MBean.class).domain())
                 .isNotEqualTo(clazz.getPackage().getName());
@@ -102,7 +99,7 @@ public class AJMXServerImplTest implements WithAssertions {
         DomainTypeNameAnnot obj = new DomainTypeNameAnnot();
         Class<?> clazz = obj.getClass();
         String name = "ASpecificName";
-        AJMXServerImpl.Instance inst = server.createInstance(obj, null, name);
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, name);
         assertThat(inst.getDomain())
                 .isEqualTo(clazz.getAnnotation(MBean.class).domain())
                 .isNotEqualTo(clazz.getPackage().getName());
@@ -119,7 +116,7 @@ public class AJMXServerImplTest implements WithAssertions {
         DomainTypeNameAnnot obj = new DomainTypeNameAnnot();
         Class<?> clazz = obj.getClass();
         String type = "ASpecificType";
-        AJMXServerImpl.Instance inst = server.createInstance(obj, type, null);
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, type, null);
         assertThat(inst.getDomain())
                 .isEqualTo(clazz.getAnnotation(MBean.class).domain())
                 .isNotEqualTo(clazz.getPackage().getName());
@@ -137,7 +134,7 @@ public class AJMXServerImplTest implements WithAssertions {
         Class<?> clazz = obj.getClass();
         String name = "ASpecificName";
         String type = "ASpecificType";
-        AJMXServerImpl.Instance inst = server.createInstance(obj, type, name);
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, type, name);
         assertThat(inst.getDomain())
                 .isEqualTo(clazz.getAnnotation(MBean.class).domain())
                 .isNotEqualTo(clazz.getPackage().getName());
@@ -154,7 +151,7 @@ public class AJMXServerImplTest implements WithAssertions {
     public void noAttributeTest() throws JMException {
         EmptyAnnot obj = new EmptyAnnot();
         Class<?> clazz = obj.getClass();
-        AJMXServerImpl.Instance inst = server.createInstance(obj, null, null);
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
         assertThat(inst.getMBeanInfo().getAttributes())
                 .isNullOrEmpty();
     }
@@ -163,7 +160,7 @@ public class AJMXServerImplTest implements WithAssertions {
     public void attributeTest() throws JMException {
         DomainTypeAnnot obj = new DomainTypeAnnot();
         Class<?> clazz = obj.getClass();
-        AJMXServerImpl.Instance inst = server.createInstance(obj, null, null);
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
         assertThat(inst.getMBeanInfo().getAttributes())
                 .isNotNull().isNotEmpty();
     }
@@ -172,7 +169,7 @@ public class AJMXServerImplTest implements WithAssertions {
     public void attributeBooleanTest() throws JMException {
         DomainTypeAnnot obj = new DomainTypeAnnot();
         Class<?> clazz = obj.getClass();
-        AJMXServerImpl.Instance inst = server.createInstance(obj, null, null);
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
         final String testedAttribute = "boolAttr";
         Class<?> testedClass = Boolean.class;
 
@@ -192,7 +189,7 @@ public class AJMXServerImplTest implements WithAssertions {
     public void attributeByteTest() throws JMException {
         DomainTypeAnnot obj = new DomainTypeAnnot();
         Class<?> clazz = obj.getClass();
-        AJMXServerImpl.Instance inst = server.createInstance(obj, null, null);
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
         final String testedAttribute = "byteAttr";
         Class<?> testedClass = Byte.class;
 
@@ -212,7 +209,7 @@ public class AJMXServerImplTest implements WithAssertions {
     public void attributeCharTest() throws JMException {
         DomainTypeAnnot obj = new DomainTypeAnnot();
         Class<?> clazz = obj.getClass();
-        AJMXServerImpl.Instance inst = server.createInstance(obj, null, null);
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
         final String testedAttribute = "charAttr";
         Class<?> testedClass = Character.class;
 
@@ -232,7 +229,7 @@ public class AJMXServerImplTest implements WithAssertions {
     public void attributeShortTest() throws JMException {
         DomainTypeAnnot obj = new DomainTypeAnnot();
         Class<?> clazz = obj.getClass();
-        AJMXServerImpl.Instance inst = server.createInstance(obj, null, null);
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
         final String testedAttribute = "shortAttr";
         Class<?> testedClass = Short.class;
 
@@ -252,7 +249,7 @@ public class AJMXServerImplTest implements WithAssertions {
     public void attributeIntegerTest() throws JMException {
         DomainTypeAnnot obj = new DomainTypeAnnot();
         Class<?> clazz = obj.getClass();
-        AJMXServerImpl.Instance inst = server.createInstance(obj, null, null);
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
         final String testedAttribute = "intAttr";
         Class<?> testedClass = Integer.class;
 
@@ -272,7 +269,7 @@ public class AJMXServerImplTest implements WithAssertions {
     public void attributeLongTest() throws JMException {
         DomainTypeAnnot obj = new DomainTypeAnnot();
         Class<?> clazz = obj.getClass();
-        AJMXServerImpl.Instance inst = server.createInstance(obj, null, null);
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
         final String testedAttribute = "longAttr";
         Class<?> testedClass = Long.class;
 
@@ -292,7 +289,7 @@ public class AJMXServerImplTest implements WithAssertions {
     public void attributeFloatTest() throws JMException {
         DomainTypeAnnot obj = new DomainTypeAnnot();
         Class<?> clazz = obj.getClass();
-        AJMXServerImpl.Instance inst = server.createInstance(obj, null, null);
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
         final String testedAttribute = "floatAttr";
         Class<?> testedClass = Float.class;
 
@@ -312,7 +309,7 @@ public class AJMXServerImplTest implements WithAssertions {
     public void attributeDoubleTest() throws JMException {
         DomainTypeAnnot obj = new DomainTypeAnnot();
         Class<?> clazz = obj.getClass();
-        AJMXServerImpl.Instance inst = server.createInstance(obj, null, null);
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
         final String testedAttribute = "doubleAttr";
         Class<?> testedClass = Double.class;
 
@@ -332,7 +329,7 @@ public class AJMXServerImplTest implements WithAssertions {
     public void attributeStringTest() throws JMException {
         DomainTypeAnnot obj = new DomainTypeAnnot();
         Class<?> clazz = obj.getClass();
-        AJMXServerImpl.Instance inst = server.createInstance(obj, null, null);
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
         final String testedAttribute = "strAttr";
         Class<?> testedClass = String.class;
 
@@ -352,7 +349,7 @@ public class AJMXServerImplTest implements WithAssertions {
     public void attributeBigIntTest() throws JMException {
         DomainTypeAnnot obj = new DomainTypeAnnot();
         Class<?> clazz = obj.getClass();
-        AJMXServerImpl.Instance inst = server.createInstance(obj, null, null);
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
         final String testedAttribute = "biAttr";
         Class<?> testedClass = BigInteger.class;
 
@@ -372,7 +369,7 @@ public class AJMXServerImplTest implements WithAssertions {
     public void attributeBigDecTest() throws JMException {
         DomainTypeAnnot obj = new DomainTypeAnnot();
         Class<?> clazz = obj.getClass();
-        AJMXServerImpl.Instance inst = server.createInstance(obj, null, null);
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
         final String testedAttribute = "bdAttr";
         Class<?> testedClass = BigDecimal.class;
 
@@ -391,7 +388,7 @@ public class AJMXServerImplTest implements WithAssertions {
     @Test
     public void attributeDescriptionTest() throws JMException, NoSuchFieldException {
         DomainTypeAnnot obj = new DomainTypeAnnot();
-        AJMXServerImpl.Instance inst = server.createInstance(obj, null, null);
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
         final String attributeName = "boolAttr";
         MBeanAttributeInfo attributeInfo = inst.getMBeanAttributeInfo(attributeName);
 
@@ -403,7 +400,7 @@ public class AJMXServerImplTest implements WithAssertions {
     @Test
     public void attributeAccessReadOnlyTest() throws JMException {
         DomainAnnot obj = new DomainAnnot();
-        AJMXServerImpl.Instance inst = server.createInstance(obj, null, null);
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
         final String attributeName = "readOnly";
 
         {
@@ -430,7 +427,7 @@ public class AJMXServerImplTest implements WithAssertions {
     @Test
     public void attributeAccessWriteOnlyTest() throws JMException {
         DomainAnnot obj = new DomainAnnot();
-        AJMXServerImpl.Instance inst = server.createInstance(obj, null, null);
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
         final String attributeName = "writeOnly";
 
         {
@@ -455,7 +452,7 @@ public class AJMXServerImplTest implements WithAssertions {
     @Test
     public void attributeAccessReadWriteTest() throws JMException {
         DomainAnnot obj = new DomainAnnot();
-        AJMXServerImpl.Instance inst = server.createInstance(obj, null, null);
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
         final String attributeName = "readWrite";
 
         {
@@ -476,7 +473,7 @@ public class AJMXServerImplTest implements WithAssertions {
     public void getAttributesTest() {
         DomainTypeAnnot obj = new DomainTypeAnnot();
         Class<?> clazz = obj.getClass();
-        AJMXServerImpl.Instance inst = server.createInstance(obj, null, null);
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
 
         AttributeList attributes = inst.getAttributes(new String[]{"intAttr", "strAttr", "unknownAttr"});
         assertThat(attributes).isNotNull().isNotEmpty()
@@ -490,7 +487,7 @@ public class AJMXServerImplTest implements WithAssertions {
     public void setAttributesTest() {
         DomainTypeAnnot obj = new DomainTypeAnnot();
         Class<?> clazz = obj.getClass();
-        AJMXServerImpl.Instance inst = server.createInstance(obj, null, null);
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
         AttributeList attributes = inst.setAttributes(new AttributeList(List.of(
                 new Attribute("intAttr", 42),
                 new Attribute("strAttr", "Paf"),
@@ -508,7 +505,7 @@ public class AJMXServerImplTest implements WithAssertions {
     public void voidVoidOperationTest() throws ReflectionException, MBeanException {
         DomainTypeAnnot obj = new DomainTypeAnnot();
         Class<?> clazz = obj.getClass();
-        AJMXServerImpl.Instance inst = server.createInstance(obj, null, null);
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
         Object res = inst.invoke("voidVoidOperation", new Object[0], new String[0]);
         assertThat(res).isNull();
     }
@@ -517,7 +514,7 @@ public class AJMXServerImplTest implements WithAssertions {
     public void stringStringOperationTest() throws ReflectionException, MBeanException {
         DomainTypeAnnot obj = new DomainTypeAnnot();
         Class<?> clazz = obj.getClass();
-        AJMXServerImpl.Instance inst = server.createInstance(obj, null, null);
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
 
         Object[] params = new Object[] {
                 "World"
@@ -534,7 +531,7 @@ public class AJMXServerImplTest implements WithAssertions {
     public void integerOperationTest() throws ReflectionException, MBeanException {
         DomainTypeAnnot obj = new DomainTypeAnnot();
         Class<?> clazz = obj.getClass();
-        AJMXServerImpl.Instance inst = server.createInstance(obj, null, null);
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
 
         Object[] params = new Object[] {
                 Boolean.TRUE,
@@ -562,7 +559,7 @@ public class AJMXServerImplTest implements WithAssertions {
     public void decimalOperationTest() throws ReflectionException, MBeanException {
         DomainTypeAnnot obj = new DomainTypeAnnot();
         Class<?> clazz = obj.getClass();
-        AJMXServerImpl.Instance inst = server.createInstance(obj, null, null);
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
 
         Object[] params = new Object[] {
                 1.2f,
