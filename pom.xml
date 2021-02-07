@@ -8,7 +8,9 @@
     <artifactId>ajmx-root</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>Annotated JMX processor :: Base repository</name>
+    <name>Annotated JMX Adaptor :: Base repository</name>
+    <description>AJMX is a library providing an adaptor to allow publishing simply annotated POJO as JMX monitored beans
+        without having to implement any MBean interface nor deal with Dynamic, Model or Open MBean complexity.</description>
     <url>https://github.com/EmilienKia/ajmx</url>
     <inceptionYear>2020</inceptionYear>
 

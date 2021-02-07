@@ -13,7 +13,7 @@
 
     <artifactId>ajmx-it</artifactId>
     <packaging>jar</packaging>
-    <name>Annotated JMX processor :: Integration tests</name>
+    <name>Annotated JMX adaptor :: Integration tests</name>
 
     <properties>
         <pax-exam.version>4.13.3</pax-exam.version>

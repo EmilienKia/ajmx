@@ -13,8 +13,8 @@
     
     <artifactId>ajmx-osgi</artifactId>
     <packaging>bundle</packaging>
-    <name>Annotated JMX processor :: Bundle</name>
-    <description>Processor for managing JMX beans with annotations.</description>
+    <name>Annotated JMX adaptor :: Bundle</name>
+    <description>Annotation based JMX adaptor bundle.</description>
 
     <dependencies>
         <dependency>

@@ -13,8 +13,8 @@
     
     <artifactId>ajmx</artifactId>
     <packaging>bundle</packaging>
-    <name>Annotated JMX processor :: Library</name>
-    <description>Processor for managing JMX beans with annotations.</description>
+    <name>Annotated JMX adaptor :: Library</name>
+    <description>Annotation based JMX adaptor library.</description>
 
     <dependencies>
         <!-- Logging -->
