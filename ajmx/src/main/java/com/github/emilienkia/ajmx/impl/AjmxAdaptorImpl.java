@@ -194,7 +194,7 @@ public class AjmxAdaptorImpl implements AjmxAdaptor {
             name = paramAnnot.name();
             description = paramAnnot.description();
         }
-        if(name==null || name .isEmpty()) {
+        if(name==null || name.isEmpty()) {
             name = "param" + idx;
         }
 
