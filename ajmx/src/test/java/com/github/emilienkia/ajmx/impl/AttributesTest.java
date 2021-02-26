@@ -3,6 +3,7 @@ package com.github.emilienkia.ajmx.impl;
 import com.github.emilienkia.ajmx.annotations.MBean;
 import com.github.emilienkia.ajmx.annotations.MBeanAttribute;
 import com.github.emilienkia.ajmx.exceptions.NotAnAMBean;
+import com.github.emilienkia.ajmx.impl.AjmxAdaptorImpl;
 import com.github.emilienkia.ajmx.impl.entities.DomainAnnot;
 import com.github.emilienkia.ajmx.impl.entities.DomainTypeAnnot;
 import com.github.emilienkia.ajmx.impl.entities.DomainTypeNameAnnot;
@@ -10,15 +11,22 @@ import com.github.emilienkia.ajmx.impl.entities.EmptyAnnot;
 import com.github.emilienkia.ajmx.impl.entities.NoAnnot;
 import org.assertj.core.api.WithAssertions;
 import org.assertj.core.data.Offset;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.management.*;
+import javax.management.Attribute;
+import javax.management.AttributeList;
+import javax.management.AttributeNotFoundException;
+import javax.management.JMException;
+import javax.management.MBeanAttributeInfo;
+import javax.management.MBeanException;
+import javax.management.ReflectionException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 
-public class AjmxAdaptorImplTest implements WithAssertions {
+public class AttributesTest implements WithAssertions {
 
     AjmxAdaptorImpl server;
 
@@ -28,123 +36,9 @@ public class AjmxAdaptorImplTest implements WithAssertions {
         assertThat(server).isNotNull();
     }
 
-    @Test
-    public void noAnnotTest() {
-        NoAnnot obj = new NoAnnot();
-        Throwable thrown = catchThrowable(() -> server.createInstance(obj, null, null));
-        assertThat(thrown).isInstanceOf(NotAnAMBean.class);
-    }
-
-    @Test
-    public void emptyAnnotTest() throws JMException {
-        EmptyAnnot obj = new EmptyAnnot();
-        Class<?> clazz = obj.getClass();
-        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
-        assertThat(inst.getDomain()).isEqualTo(clazz.getPackage().getName());
-        assertThat(inst.getType()).isEqualTo(clazz.getSimpleName());
-        assertThat(inst.getName()).isNotEmpty().isNotBlank();
-    }
-
-    @Test
-    public void domainAnnotTest() throws JMException {
-        DomainAnnot obj = new DomainAnnot();
-        Class<?> clazz = obj.getClass();
-        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
-        assertThat(inst.getDomain())
-                .isEqualTo(clazz.getAnnotation(MBean.class).domain())
-                .isNotEqualTo(clazz.getPackage().getName());
-        assertThat(inst.getType())
-                .isEqualTo(clazz.getSimpleName());
-        assertThat(inst.getName())
-                .isNotEmpty().isNotBlank();
-        assertThat(inst.getDescription())
-                .isNullOrEmpty();
-    }
-
-    @Test
-    public void domainAndTypeAnnotTest() throws JMException {
-        DomainTypeAnnot obj = new DomainTypeAnnot();
-        Class<?> clazz = obj.getClass();
-        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
-        assertThat(inst.getDomain())
-                .isEqualTo(clazz.getAnnotation(MBean.class).domain())
-                .isNotEqualTo(clazz.getPackage().getName());
-        assertThat(inst.getType())
-                .isEqualTo(clazz.getAnnotation(MBean.class).type())
-                .isNotEqualTo(clazz.getSimpleName());
-        assertThat(inst.getName())
-                .isNotEmpty().isNotBlank();
-        assertThat(inst.getDescription())
-                .isNotNull().isNotEmpty().isNotBlank()
-                .isEqualTo(DomainTypeAnnot.class.getAnnotation(MBean.class).description());
-    }
-
-    @Test
-    public void domainAndTypeandNameAnnotTest() throws JMException {
-        DomainTypeNameAnnot obj = new DomainTypeNameAnnot();
-        Class<?> clazz = obj.getClass();
-        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
-        assertThat(inst.getDomain())
-                .isEqualTo(clazz.getAnnotation(MBean.class).domain())
-                .isNotEqualTo(clazz.getPackage().getName());
-        assertThat(inst.getType())
-                .isEqualTo(clazz.getAnnotation(MBean.class).type())
-                .isNotEqualTo(clazz.getSimpleName());
-        assertThat(inst.getName())
-                .isEqualTo(clazz.getAnnotation(MBean.class).name());
-    }
-
-    @Test
-    public void overrideNameTest() throws JMException {
-        DomainTypeNameAnnot obj = new DomainTypeNameAnnot();
-        Class<?> clazz = obj.getClass();
-        String name = "ASpecificName";
-        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, name);
-        assertThat(inst.getDomain())
-                .isEqualTo(clazz.getAnnotation(MBean.class).domain())
-                .isNotEqualTo(clazz.getPackage().getName());
-        assertThat(inst.getType())
-                .isEqualTo(clazz.getAnnotation(MBean.class).type())
-                .isNotEqualTo(clazz.getSimpleName());
-        assertThat(inst.getName())
-                .isEqualTo(name)
-                .isNotEqualTo(clazz.getAnnotation(MBean.class).name());
-    }
-
-    @Test
-    public void overrideTypeTest() throws JMException {
-        DomainTypeNameAnnot obj = new DomainTypeNameAnnot();
-        Class<?> clazz = obj.getClass();
-        String type = "ASpecificType";
-        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, type, null);
-        assertThat(inst.getDomain())
-                .isEqualTo(clazz.getAnnotation(MBean.class).domain())
-                .isNotEqualTo(clazz.getPackage().getName());
-        assertThat(inst.getType())
-                .isEqualTo(type)
-                .isNotEqualTo(clazz.getAnnotation(MBean.class).type())
-                .isNotEqualTo(clazz.getSimpleName());
-        assertThat(inst.getName())
-                .isEqualTo(clazz.getAnnotation(MBean.class).name());
-    }
-
-    @Test
-    public void overrideTypeAndNameTest() throws JMException {
-        DomainTypeNameAnnot obj = new DomainTypeNameAnnot();
-        Class<?> clazz = obj.getClass();
-        String name = "ASpecificName";
-        String type = "ASpecificType";
-        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, type, name);
-        assertThat(inst.getDomain())
-                .isEqualTo(clazz.getAnnotation(MBean.class).domain())
-                .isNotEqualTo(clazz.getPackage().getName());
-        assertThat(inst.getType())
-                .isEqualTo(type)
-                .isNotEqualTo(clazz.getAnnotation(MBean.class).type())
-                .isNotEqualTo(clazz.getSimpleName());
-        assertThat(inst.getName())
-                .isEqualTo(name)
-                .isNotEqualTo(clazz.getAnnotation(MBean.class).name());
+    @After
+    public void after() {
+        server = null;
     }
 
     @Test
@@ -501,79 +395,4 @@ public class AjmxAdaptorImplTest implements WithAssertions {
                 );
     }
 
-    @Test
-    public void voidVoidOperationTest() throws ReflectionException, MBeanException {
-        DomainTypeAnnot obj = new DomainTypeAnnot();
-        Class<?> clazz = obj.getClass();
-        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
-        Object res = inst.invoke("voidVoidOperation", new Object[0], new String[0]);
-        assertThat(res).isNull();
-    }
-
-    @Test
-    public void stringStringOperationTest() throws ReflectionException, MBeanException {
-        DomainTypeAnnot obj = new DomainTypeAnnot();
-        Class<?> clazz = obj.getClass();
-        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
-
-        Object[] params = new Object[] {
-                "World"
-        };
-        String[] signature = new String[] {
-                String.class.getName()
-        };
-
-        Object res = inst.invoke("hello", params, signature);
-        assertThat(res).isNotNull().isInstanceOf(String.class).asString().isNotEmpty();
-    }
-
-    @Test
-    public void integerOperationTest() throws ReflectionException, MBeanException {
-        DomainTypeAnnot obj = new DomainTypeAnnot();
-        Class<?> clazz = obj.getClass();
-        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
-
-        Object[] params = new Object[] {
-                Boolean.TRUE,
-                Byte.valueOf("1"),
-                Short.valueOf("2"),
-                3,
-                4l,
-                BigInteger.TEN
-        };
-        String[] signature = new String[] {
-                Boolean.class.getName(),
-                Byte.class.getName(),
-                Short.class.getName(),
-                Integer.class.getName(),
-                Long.class.getName(),
-                BigInteger.class.getName()
-        };
-
-        Object res = inst.invoke("sumIntegers", params, signature);
-        assertThat(res).isNotNull().isInstanceOf(BigInteger.class)
-                .asInstanceOf(BIG_INTEGER).isEqualTo(-20);
-    }
-
-    @Test
-    public void decimalOperationTest() throws ReflectionException, MBeanException {
-        DomainTypeAnnot obj = new DomainTypeAnnot();
-        Class<?> clazz = obj.getClass();
-        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
-
-        Object[] params = new Object[] {
-                1.2f,
-                3.4,
-                new BigDecimal("5.6")
-        };
-        String[] signature = new String[] {
-                Float.class.getName(),
-                Double.class.getName(),
-                BigDecimal.class.getName()
-        };
-
-        Object res = inst.invoke("sumDecimals", params, signature);
-        assertThat(res).isNotNull().isInstanceOf(Double.class)
-                .asInstanceOf(DOUBLE).isEqualTo( 10.2 , Offset.offset(0.0001) );
-    }
 }
