@@ -10,6 +10,7 @@ import java.lang.annotation.Target;
 public @interface MBeanAttribute {
 
     enum AccessMode {
+        DEFAULT,
         READ_ONLY,
         WRITE_ONLY,
         READ_WRITE
@@ -19,7 +20,7 @@ public @interface MBeanAttribute {
 
     String description() default "";
 
-    AccessMode accessMode() default AccessMode.READ_ONLY;
+    AccessMode accessMode() default AccessMode.DEFAULT;
 
     class Helpers {
 
@@ -31,7 +32,7 @@ public @interface MBeanAttribute {
             if (attr == null) {
                 throw new IllegalArgumentException("MBean attribute annotation shall be specified");
             }
-            return attr.accessMode() == MBeanAttribute.AccessMode.READ_ONLY || attr.accessMode() == MBeanAttribute.AccessMode.READ_WRITE;
+            return attr.accessMode() == AccessMode.DEFAULT || attr.accessMode() == MBeanAttribute.AccessMode.READ_ONLY || attr.accessMode() == MBeanAttribute.AccessMode.READ_WRITE;
         }
 
         public static boolean canWrite(final MBeanAttribute attr) {
