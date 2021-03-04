@@ -33,7 +33,7 @@ public class AjmxActivator  implements BundleActivator {
             @Override
             public synchronized MBeanServer addingService(ServiceReference<MBeanServer> reference) {
                 MBeanServer server = super.addingService(reference);
-                if(shouldReplaceCurrentMBeanServer(reference)) {
+                if(server!=null && shouldReplaceCurrentMBeanServer(reference)) {
                     replaceCurrent(server);
                 }
                 return server;
@@ -97,7 +97,7 @@ public class AjmxActivator  implements BundleActivator {
             @Override
             public Object addingService(ServiceReference<Object> reference) {
                 Object service = super.addingService(reference);
-                if(amBeanServer.isAMBean(service.getClass())) {
+                if(service!=null && amBeanServer.isAMBean(service.getClass())) {
                     // TODO Handle OSGi properties
                     try {
                         amBeanServer.registerAMBean(service);
