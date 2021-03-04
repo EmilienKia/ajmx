@@ -6,7 +6,7 @@
 
     <groupId>com.github.emilienkia</groupId>
     <artifactId>ajmx-root</artifactId>
-    <version>0.1.0</version>
+    <version>0.1.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Annotated JMX Adaptor :: Base repository</name>
     <description>AJMX is a library providing an adaptor to allow publishing simply annotated POJO as JMX monitored beans
