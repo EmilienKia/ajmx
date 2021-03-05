@@ -21,7 +21,7 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>ajmx</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
+            <scope>provided</scope>
         </dependency>
         <!-- OSGI R6 -->
         <dependency>
@@ -34,6 +34,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Tests -->
@@ -82,6 +83,46 @@
                         <goals>
                             <goal>generate-depends-file</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.karaf.tooling</groupId>
+                <artifactId>karaf-maven-plugin</artifactId>
+                <version>4.2.10</version>
+                <executions>
+                    <execution>
+                        <id>generate-features-file</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>features-generate-descriptor</goal>
+                        </goals>
+                        <configuration>
+                            <includeProjectArtifact>true</includeProjectArtifact>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-features-xml</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>attach-artifact</goal>
+                        </goals>
+                        <configuration>
+                            <artifacts>
+                                <artifact>
+                                    <file>target/feature/feature.xml</file>
+                                    <classifier>features</classifier>
+                                    <type>xml</type>
+                                </artifact>
+                            </artifacts>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

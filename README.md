@@ -99,3 +99,19 @@ Finally AJMX-OSGi bundle is listening for all registred services and, if they ar
 In consequence, if you are in a full OSGi environment providing an MBeanServer, and you just want to expose services objects, you just have to annotate them and publish them as services.
 
 This AJMX(OSGi have been design for and tested with [Apache Karaf](https://karaf.apache.org) runtime with ``management`` feature.
+
+### Karaf support
+AJMX provides a Karaf features.xml file to easily provision it.
+You can reference it on your own features repository file.
+
+Or you can install it, through command-line by adding the features.xml as features repository and install the feature:
+
+    karaf@root()> feature:repo-add mvn:com.github.emilienkia/ajmx-osgi/LATEST/xml/features
+    Adding feature url mvn:com.github.emilienkia/ajmx-osgi/LATEST/xml/features
+    
+    karaf@root()> feature:install ajmx-osgi 
+
+
+
+
+
