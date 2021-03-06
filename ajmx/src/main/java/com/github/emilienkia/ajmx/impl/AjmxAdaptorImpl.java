@@ -121,26 +121,29 @@ public class AjmxAdaptorImpl implements AjmxAdaptor {
     }
 
     @Override
-    public void registerAMBean(Object obj) throws JMException {
-        registerAMBean(obj, null, null);
+    public ObjectName registerAMBean(Object obj) throws JMException {
+        return registerAMBean(obj, null, null);
     }
 
     @Override
-    public void registerAMBean(Object obj, String name) throws JMException {
-        registerAMBean(obj, null, name);
+    public ObjectName registerAMBean(Object obj, String name) throws JMException {
+        return registerAMBean(obj, null, name);
     }
 
     @Override
-    public void registerAMBean(Object obj, String type, String name) throws JMException {
+    public ObjectName registerAMBean(Object obj, String type, String name) throws JMException {
         Instance instance = createInstance(obj, type, name);
-        logger.info("Register MBean : {}", instance.getObjectName());
         try {
+            ObjectName objName = instance.getObjectName();
+            logger.info("Register MBean : {}", objName);
             if(mbeanServer!=null) {
-                mbeanServer.registerMBean(instance, instance.getObjectName());
+                mbeanServer.registerMBean(instance, objName);
             }
             ambeans.put(obj, instance);
+            return objName;
         } catch (MalformedObjectNameException | MBeanRegistrationException | InstanceAlreadyExistsException | NotCompliantMBeanException ex) {
             logger.error("Error while creating new ABean for object {} of type {}", obj, obj.getClass().getName(), ex);
+            throw ex;
         }
     }
 
@@ -151,6 +154,17 @@ public class AjmxAdaptorImpl implements AjmxAdaptor {
             throw new NotAnAMBean();
         }
         return new Instance(obj, desc, type, name);
+    }
+
+    @Override
+    public void unregisterAMBean(ObjectName objName) throws JMException {
+        for(Map.Entry<Object, Instance> entry : ambeans.entrySet()) {
+            ObjectName name = entry.getValue().getObjectName();
+            if(name.equals(objName)) {
+                unregisterAMBean(entry.getKey());
+                return;
+            }
+        }
     }
 
     @Override
@@ -622,6 +636,8 @@ public class AjmxAdaptorImpl implements AjmxAdaptor {
         String type;
         String name;
 
+        ObjectName objectName = null;
+
         public Instance(Object object, ClassDescriptor descriptor, String type, String name) {
             this.object = object;
             this.descriptor = descriptor;
@@ -671,7 +687,10 @@ public class AjmxAdaptorImpl implements AjmxAdaptor {
         }
 
         public ObjectName getObjectName() throws MalformedObjectNameException {
-            return new ObjectName(buildObjectName());
+            if(objectName==null) {
+                objectName = new ObjectName(buildObjectName());
+            }
+            return objectName;
         }
 
         @Override

@@ -153,4 +153,6 @@ public class RegistrationTest implements WithAssertions {
                 .isNotEqualTo(clazz.getAnnotation(MBean.class).name());
     }
 
+
+
 }

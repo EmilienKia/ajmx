@@ -285,5 +285,35 @@ public class RegistrationIT extends KarafTestSupport implements WithAssertions {
         }
     }
 
+    @Test
+    public void unregisterObjectTest() throws Exception {
+
+        DomainTypeNameAnnot obj = new DomainTypeNameAnnot();
+        ObjectName name = server.registerAMBean(obj);
+
+        assertThat(mbeanServer.getObjectInstance(name)).isNotNull();
+
+        server.unregisterAMBean(obj);
+
+        Throwable thrown = catchThrowable(() -> mbeanServer.getObjectInstance(name));
+        assertThat(thrown).isInstanceOf(JMException.class);
+
+    }
+
+    @Test
+    public void unregisterObjectNameTest() throws Exception {
+
+        DomainTypeNameAnnot obj = new DomainTypeNameAnnot();
+        ObjectName name = server.registerAMBean(obj);
+
+        assertThat(mbeanServer.getObjectInstance(name)).isNotNull();
+
+        server.unregisterAMBean(name);
+
+        Throwable thrown = catchThrowable(() -> mbeanServer.getObjectInstance(name));
+        assertThat(thrown).isInstanceOf(JMException.class);
+
+    }
+
 }
 
