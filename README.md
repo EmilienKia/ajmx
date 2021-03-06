@@ -54,6 +54,8 @@ If not present, the adaptor will use the class package as domain, the class name
 Moreover, you can specify a name and/or a type directly when registering your object. When explicitly specified at registration, types and names take precedence over annotation declaration. This is particularly usefull to distingusih names or contexts when registering many instances of the same class, as JMX requires MBeans have strictly different ObjectName.
 
 ### Declare attributes
+
+#### Attributes with fields
 To add a JMX attribute, just annotate a class field with ``@MBeanAttribute``.
 
 	@MBeanAttribute(name = "attrib", description = "This is an integer attribute", accessMode = READ_WRITE)
@@ -61,6 +63,48 @@ To add a JMX attribute, just annotate a class field with ``@MBeanAttribute``.
 
 This annotation allows to specify the name and the description of the attribute. If the ``name`` annotation property is not specified, the attribute takes the name of the Java field.
 You can also specify the access mode to the attribute. By default, an attribute is read-only, but you can set it at read-only, read-write or write-only.
+
+#### Attributes with accessors
+You also can read or write your attributes through accessors (typically getters and setters).
+You just have to annotate these accessors with ``@MBeanAttribute``.
+
+    @MBeanAttribute(name = "attrib", description = "This is an integer attribute")
+    public int getAttribute() {
+        /* ... */
+    }
+
+    @MBeanAttribute(name = "attrib")
+    public void setAttribute(int value) {
+        /* ... */
+    }
+
+You can annotate one or two methods (one getter and one setter).
+``accessMode`` annotation fields are ignored for methods, they will automatically inherit from their access mode :
+read for getters (no param and not-void return type) and write for setters (one parameter, eventual return type are ignored).
+
+When annotating a getter and a setter, their relevant types (parameter for setter and return type for setter) shall be identical. 
+
+Annotating more than a getter and a setter for the same attribute name will make introspection fail.
+
+If not specified in the annotation, attribute name will be deduced from the annotated method name.
+``get``, ``is`` and ``set`` prefixes will be removed, method name will be ``camelCase``ified.
+
+#### Mixing fields and methods for attributes
+You can also mix annotations of fields and methods for attributes.
+The fields will be considered as the base for attribute and methods will eventually add access.
+A typical case can be to declare a read-only field attribute and add a setter method to add constrain checks when modifying its value.
+
+	@MBeanAttribute(description = "This is an integer attribute", accessMode = READ_ONLY)
+	int attr = 25;
+    
+    @MBeanAttribute
+    void setAttr(int value) {
+        /* ... */
+    }
+
+Note that:
+  - You cannot add more than a getter and a setter to the same attribute (per attribute name)
+  - Their relevant types shall be identical.
 
 ### Declare operations
 To add a JMX operation, just annotate the method to invoke with ``@MBeanOperation``. Method return and parameters types will be automatically mapped to the operation. You can specify the method name and description. As attributes, If name parameter is ommited, the operation will use the Java method name. You may also specify the impact of the operation on the bean by specifying if the operation is an action, an information, both or if impact is unknwon.

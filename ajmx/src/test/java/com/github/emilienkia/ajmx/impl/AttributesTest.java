@@ -4,6 +4,7 @@ import com.github.emilienkia.ajmx.annotations.MBean;
 import com.github.emilienkia.ajmx.annotations.MBeanAttribute;
 import com.github.emilienkia.ajmx.exceptions.NotAnAMBean;
 import com.github.emilienkia.ajmx.impl.AjmxAdaptorImpl;
+import com.github.emilienkia.ajmx.impl.entities.AttributeAccessAnnot;
 import com.github.emilienkia.ajmx.impl.entities.DomainAnnot;
 import com.github.emilienkia.ajmx.impl.entities.DomainTypeAnnot;
 import com.github.emilienkia.ajmx.impl.entities.DomainTypeNameAnnot;
@@ -393,6 +394,93 @@ public class AttributesTest implements WithAssertions {
                         new Attribute("intAttr", 42),
                         new Attribute("strAttr", "Paf")
                 );
+    }
+
+    @Test
+    public void getMethodReadOnlyAttributeTest() throws JMException {
+        AttributeAccessAnnot obj = new AttributeAccessAnnot();
+        Class<?> clazz = obj.getClass();
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
+
+        assertThat(inst.getAttribute("methodReadOnly"))
+                .isNotNull()
+                .asInstanceOf(INTEGER).isEqualTo(42);
+
+
+        Throwable thrown = catchThrowable(() -> inst.setAttribute("methodReadOnly", 28));
+        assertThat(thrown).isInstanceOf(AttributeNotFoundException.class).hasMessageContaining("is not writable");
+    }
+
+    @Test
+    public void getMethodWriteOnlyAttributeTest() throws JMException {
+        AttributeAccessAnnot obj = new AttributeAccessAnnot();
+        Class<?> clazz = obj.getClass();
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
+
+        assertThat(obj.intValue).isEqualTo(42);
+        inst.setAttribute("methodWriteOnly", 28);
+        assertThat(obj.intValue).isEqualTo(28);
+
+
+        Throwable thrown = catchThrowable(() -> inst.getAttribute("methodWriteOnly"));
+        assertThat(thrown).isInstanceOf(AttributeNotFoundException.class).hasMessageContaining("is not readable");
+    }
+
+    @Test
+    public void getMethodReadWriteAttributeTest() throws JMException {
+        AttributeAccessAnnot obj = new AttributeAccessAnnot();
+        Class<?> clazz = obj.getClass();
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
+
+        assertThat(obj.intValue).isEqualTo(42);
+        assertThat(inst.getAttribute("methodReadWrite"))
+                .isNotNull()
+                .asInstanceOf(INTEGER).isEqualTo(42);
+
+        inst.setAttribute("methodReadWrite", 28);
+        assertThat(obj.intValue).isEqualTo(28);
+
+        assertThat(inst.getAttribute("methodReadWrite"))
+                .isNotNull()
+                .asInstanceOf(INTEGER).isEqualTo(28);
+    }
+
+    @Test
+    public void getMethodMixedReadWriteAttributeTest() throws JMException {
+        AttributeAccessAnnot obj = new AttributeAccessAnnot();
+        Class<?> clazz = obj.getClass();
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
+
+        assertThat(obj.methodMixedReadWrite).isEqualTo(42);
+        assertThat(inst.getAttribute("methodMixedReadWrite"))
+                .isNotNull()
+                .asInstanceOf(INTEGER).isEqualTo(42);
+
+        inst.setAttribute("methodMixedReadWrite", 28);
+        assertThat(obj.methodMixedReadWrite).isEqualTo(28);
+
+        assertThat(inst.getAttribute("methodMixedReadWrite"))
+                .isNotNull()
+                .asInstanceOf(INTEGER).isEqualTo(28);
+    }
+
+    @Test
+    public void getMethodMixedWriteReadAttributeTest() throws JMException {
+        AttributeAccessAnnot obj = new AttributeAccessAnnot();
+        Class<?> clazz = obj.getClass();
+        AjmxAdaptorImpl.Instance inst = server.createInstance(obj, null, null);
+
+        assertThat(obj.methodMixedWriteRead).isEqualTo(42);
+        assertThat(inst.getAttribute("methodMixedWriteRead"))
+                .isNotNull()
+                .asInstanceOf(INTEGER).isEqualTo(42);
+
+        inst.setAttribute("methodMixedWriteRead", 28);
+        assertThat(obj.methodMixedWriteRead).isEqualTo(28);
+
+        assertThat(inst.getAttribute("methodMixedWriteRead"))
+                .isNotNull()
+                .asInstanceOf(INTEGER).isEqualTo(28);
     }
 
 }

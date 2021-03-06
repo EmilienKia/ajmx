@@ -1,6 +1,6 @@
 package com.github.emilienkia.ajmx.exceptions;
 
-public class NotAnAMBean extends RuntimeException {
+public class NotAnAMBean extends AJMXException {
 
     public NotAnAMBean() {
     }

@@ -5,6 +5,7 @@ import com.github.emilienkia.ajmx.annotations.MBean;
 import com.github.emilienkia.ajmx.annotations.MBeanAttribute;
 import com.github.emilienkia.ajmx.annotations.MBeanOperation;
 import com.github.emilienkia.ajmx.annotations.MBeanOperationParam;
+import com.github.emilienkia.ajmx.exceptions.AttributeDescriptorException;
 import com.github.emilienkia.ajmx.exceptions.NotAnAMBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -182,6 +183,20 @@ public class AjmxAdaptorImpl implements AjmxAdaptor {
         return clazz.getTypeName();
     }
 
+    enum MethodKind{
+        Getter, Setter, Other
+    }
+
+    static MethodKind detectMethodKind(Method method) {
+        if(method.getParameterCount() == 0 && method.getReturnType() != Void.class) {
+            return MethodKind.Getter;
+        } else if (method.getParameterCount() == 1) {
+            return MethodKind.Setter;
+        } else {
+            return MethodKind.Other;
+        }
+    }
+
     private static MBeanParameterInfo introspectParameter(int idx, Class<?> type, Annotation[] annots) {
         MBeanOperationParam paramAnnot = Arrays.stream(annots)
                 .map(MBeanOperationParam.class::cast)
@@ -201,23 +216,88 @@ public class AjmxAdaptorImpl implements AjmxAdaptor {
         return new MBeanParameterInfo(name, getTypeName(type), description);
     }
 
+    private static String toCamelCase(final String str) {
+        String first = ""+str.charAt(0);
+        return first.toLowerCase()+str.substring(1);
+    }
+
     class ClassDescriptor {
 
         public class AttributeDescriptor {
-            MBeanAttribute attr;
             Field field;
+            MBeanAttribute fieldAttr;
+
+            Method getMethod;
+            Method setMethod;
             String name;
             String description;
+            Class<?> type;
 
             MBeanAttributeInfo info;
 
             public AttributeDescriptor(Field field, MBeanAttribute attr) {
-                this.field = field;
-                this.attr = attr;
-                introspect();
+                introspectField(field, attr);
             }
 
-            protected void introspect() {
+            public AttributeDescriptor(Method method, MBeanAttribute attr) {
+                switch(detectMethodKind(method)) {
+                    case Getter:
+                        introspectGetterMethod(method, attr);
+                        break;
+                    case Setter:
+                        introspectSetterMethod(method, attr);
+                        break;
+                    default:
+                        throw new AttributeDescriptorException("Method '"+method.getName()+"' is not a getter nor a setter.");
+                }
+            }
+
+            public void merge(AttributeDescriptor other) {
+                if(!getName().equals(other.getName())) {
+                    throw new IllegalArgumentException("Cant merge attributes having different names");
+                }
+                if(!getType().equals(other.getType())) {
+                    throw new IllegalArgumentException("Cant merge attributes having different types");
+                }
+
+                if(other.field!=null) {
+                    if(this.field!=null) {
+                        throw new IllegalArgumentException("Cant merge attributes having both field");
+                    } else {
+                        this.field = other.field;
+                        this.fieldAttr = other.fieldAttr;
+                    }
+                }
+                if(other.getMethod!=null) {
+                    if(this.getMethod!=null) {
+                        throw new IllegalArgumentException("Cant merge attributes having both get method");
+                    } else {
+                        this.getMethod = other.getMethod;
+                    }
+                }
+                if(other.setMethod!=null) {
+                    if(this.setMethod!=null) {
+                        throw new IllegalArgumentException("Cant merge attributes having both set method");
+                    } else {
+                        this.setMethod = other.setMethod;
+                    }
+                }
+
+                if(other.description!=null && this.description==null) {
+                    this.description = other.description;
+                }
+
+                updateInfo();
+            }
+
+            void updateInfo() {
+                info = new MBeanAttributeInfo(this.name, getTypeName(type), this.description,
+                        canRead(), canWrite(), getType()==Boolean.class && canRead());
+            }
+
+            protected void introspectField(Field field, MBeanAttribute attr) {
+                this.field = field;
+                this.fieldAttr = attr;
                 field.setAccessible(true);
 
                 if(!attr.name().isEmpty()) {
@@ -230,10 +310,60 @@ public class AjmxAdaptorImpl implements AjmxAdaptor {
                     this.description = attr.description();
                 }
 
-                info = new MBeanAttributeInfo(this.name, getTypeName(field.getType()), this.description,
-                        MBeanAttribute.Helpers.canRead(attr),
-                        MBeanAttribute.Helpers.canWrite(attr),
-                        field.getType()==Boolean.class && MBeanAttribute.Helpers.canRead(attr));
+                type = field.getType();
+
+                updateInfo();
+            }
+
+            protected void introspectGetterMethod(Method method, MBeanAttribute attr) {
+                getMethod = method;
+                getMethod.setAccessible(true);
+
+                if(!attr.name().isEmpty()) {
+                    this.name = attr.name();
+                } else {
+                    String name = getMethod.getName();
+                    if(name.startsWith("get") && name.length()>3) {
+                        this.name = toCamelCase(name.substring(3));
+                    } else if(name.startsWith("is") && name.length()>2 && getMethod.getReturnType()==Boolean.class) {
+                        this.name = toCamelCase(name.substring(2));
+                    } else {
+                        this.name = name;
+                    }
+                }
+
+                if(!attr.description().isEmpty()) {
+                    this.description = attr.description();
+                }
+
+                type = getMethod.getReturnType();
+
+                updateInfo();
+            }
+
+            protected void introspectSetterMethod(Method method, MBeanAttribute attr) {
+                setMethod = method;
+                setMethod.setAccessible(true);
+
+                if(!attr.name().isEmpty()) {
+                    this.name = attr.name();
+                } else {
+                    String name = setMethod.getName();
+                    if(name.startsWith("set") && name.length()>3) {
+                        this.name = toCamelCase(name.substring(3));
+                    } else {
+                        this.name = name;
+                    }
+                }
+
+                if(!attr.description().isEmpty()) {
+                    this.description = attr.description();
+                }
+
+                type = setMethod.getParameterTypes()[0];
+
+                info = new MBeanAttributeInfo(this.name, getTypeName(type), this.description,
+                        false, true,false);
             }
 
             public String getName() {
@@ -244,36 +374,68 @@ public class AjmxAdaptorImpl implements AjmxAdaptor {
                 return description;
             }
 
+            public Class<?> getType() {
+                return type;
+            }
+
             public MBeanAttributeInfo getInfo() {
                 return info;
             }
 
+            public boolean canRead() {
+                return (field != null && MBeanAttribute.Helpers.canRead(fieldAttr))
+                        || (getMethod != null);
+            }
+
+            public boolean canWrite() {
+                return (field != null && MBeanAttribute.Helpers.canWrite(fieldAttr))
+                        || (setMethod != null);
+            }
+
             public Object getValue(Object obj) throws MBeanException, ReflectionException, AttributeNotFoundException {
-                if(!MBeanAttribute.Helpers.canRead(attr)) {
-                    throw new AttributeNotFoundException("Attribute " + attr.name() + " is not readable.");
+                if(getMethod!=null) {
+                    try {
+                        return getMethod.invoke(obj);
+                    } catch (IllegalAccessException | InvocationTargetException e) {
+                        throw new MBeanException(e);
+                    }
+                } else if(field!=null) {
+                    if (MBeanAttribute.Helpers.canRead(fieldAttr)) {
+                        try {
+                            return field.get(obj);
+                        } catch (IllegalArgumentException e) {
+                            throw new ReflectionException(e);
+                        } catch (Exception e) {
+                            throw new MBeanException(e);
+                        }
+                    }
                 }
-                try {
-                    return field.get(obj);
-                } catch (IllegalArgumentException e) {
-                    throw new ReflectionException(e);
-                } catch (Exception e) {
-                    throw new MBeanException(e);
-                }
+                throw new AttributeNotFoundException("Attribute " + this.name + " is not readable.");
             }
 
             public void setValue(Object obj, Object value) throws InvalidAttributeValueException, MBeanException, ReflectionException, AttributeNotFoundException {
-                if(!MBeanAttribute.Helpers.canWrite(attr)) {
-                    throw new AttributeNotFoundException("Attribute " + attr.name() + " is not writable.");
+                if(setMethod!=null) {
+                    try {
+                        setMethod.invoke(obj, value);
+                        return;
+                    } catch (IllegalAccessException | InvocationTargetException e) {
+                        throw new MBeanException(e);
+                    }
+                } else if(field!=null) {
+                    if (MBeanAttribute.Helpers.canWrite(fieldAttr)) {
+                        try {
+                            field.set(obj, value);
+                            return;
+                        } catch (IllegalArgumentException e) {
+                            throw new ReflectionException(e);
+                        } catch (IllegalAccessException e) {
+                            throw new InvalidAttributeValueException();
+                        } catch (Exception e) {
+                            throw new MBeanException(e);
+                        }
+                    }
                 }
-                try {
-                    field.set(obj, value);
-                } catch (IllegalArgumentException e) {
-                    throw new ReflectionException(e);
-                } catch (IllegalAccessException e) {
-                    throw new InvalidAttributeValueException();
-                } catch (Exception e) {
-                    throw new MBeanException(e);
-                }
+                throw new AttributeNotFoundException("Attribute " + this.name + " is not writable.");
             }
         }
 
@@ -412,16 +574,23 @@ public class AjmxAdaptorImpl implements AjmxAdaptor {
         }
 
         void introspect() {
-            // Look for annoted attributes.
+            // Look for annotated attributes.
             for (Field field : clazz.getDeclaredFields()) {
                 MBeanAttribute attr = field.getAnnotation(MBeanAttribute.class);
                 if(attr!=null) {
                     AttributeDescriptor desc = new AttributeDescriptor(field, attr);
-                    attributes.put(desc.getName(), desc);
+                    attributes.merge(desc.getName(), desc, (attr1, attr2)->{attr1.merge(attr2); return attr1;});
+                }
+            }
+            for (Method method : clazz.getDeclaredMethods()) {
+                MBeanAttribute attr = method.getAnnotation(MBeanAttribute.class);
+                if(attr!=null) {
+                    AttributeDescriptor desc = new AttributeDescriptor(method, attr);
+                    attributes.merge(desc.getName(), desc, (attr1, attr2)->{attr1.merge(attr2); return attr1;});
                 }
             }
 
-            // Look for annoted operations.
+            // Look for annotated operations.
             for (Method method : clazz.getDeclaredMethods()) {
                 MBeanOperation op = method.getAnnotation(MBeanOperation.class);
                 if(op!=null) {

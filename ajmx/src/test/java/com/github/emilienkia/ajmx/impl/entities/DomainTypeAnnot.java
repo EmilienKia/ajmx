@@ -55,6 +55,19 @@ public class DomainTypeAnnot {
     Date dateAttr = new Date(100, 1, 1, 0, 0, 0);
 
 
+    int anotherIntAttr = 42;
+
+    @MBeanAttribute(name = "anotherInt", description = "This is a method-access attribute")
+    int getAnotherIntAttr() {
+        return anotherIntAttr;
+    }
+
+//    @MBeanAttribute(name = "anotherInt", description = "This is a method-access attribute")
+//    void setAnotherIntAttr(int val) {
+//        anotherIntAttr = val;
+//    }
+
+
 
     @MBeanOperation(description = "Method which takes no parameter and return nothing")
     void voidVoidOperation() {

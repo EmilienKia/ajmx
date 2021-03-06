@@ -4,6 +4,8 @@ import com.github.emilienkia.ajmx.AjmxAdaptor;
 import com.github.emilienkia.ajmx.annotations.MBean;
 import com.github.emilienkia.ajmx.annotations.MBeanAttribute;
 import com.github.emilienkia.ajmx.exceptions.NotAnAMBean;
+import com.github.emilienkia.ajmx.impl.AjmxAdaptorImpl;
+import com.github.emilienkia.ajmx.impl.entities.AttributeAccessAnnot;
 import com.github.emilienkia.ajmx.impl.entities.DomainAnnot;
 import com.github.emilienkia.ajmx.impl.entities.DomainTypeAnnot;
 import com.github.emilienkia.ajmx.impl.entities.DomainTypeNameAnnot;
@@ -512,6 +514,96 @@ public class AttributesIT extends KarafTestSupport implements WithAssertions {
                         new Attribute("intAttr", 42),
                         new Attribute("strAttr", "Paf")
                 );
+    }
+
+
+
+    @Test
+    public void getMethodReadOnlyAttributeTest() throws JMException {
+        AttributeAccessAnnot obj = new AttributeAccessAnnot();
+        server.registerAMBean(obj, "readOnlyAttribute");
+        final ObjectName name = new ObjectName("this.is.test:type=AttributeAccessAnnot,name=readOnlyAttribute");
+
+        assertThat(mbeanServer.getAttribute(name, "methodReadOnly"))
+                .isNotNull()
+                .asInstanceOf(INTEGER).isEqualTo(42);
+
+
+        Throwable thrown = catchThrowable(() -> mbeanServer.setAttribute(name, new Attribute("methodReadOnly", 28)));
+        assertThat(thrown).isInstanceOf(AttributeNotFoundException.class).hasMessageContaining("is not writable");
+    }
+
+
+    @Test
+    public void getMethodWriteOnlyAttributeTest() throws JMException {
+        AttributeAccessAnnot obj = new AttributeAccessAnnot();
+        server.registerAMBean(obj, "writeOnlyAttribute");
+        final ObjectName name = new ObjectName("this.is.test:type=AttributeAccessAnnot,name=writeOnlyAttribute");
+
+        assertThat(obj.intValue).isEqualTo(42);
+        mbeanServer.setAttribute(name, new Attribute("methodWriteOnly", 28));
+        assertThat(obj.intValue).isEqualTo(28);
+
+
+        Throwable thrown = catchThrowable(() -> mbeanServer.getAttribute(name, "methodWriteOnly"));
+        assertThat(thrown).isInstanceOf(AttributeNotFoundException.class).hasMessageContaining("is not readable");
+    }
+
+    @Test
+    public void getMethodReadWriteAttributeTest() throws JMException {
+        AttributeAccessAnnot obj = new AttributeAccessAnnot();
+        server.registerAMBean(obj, "readWriteAttribute");
+        final ObjectName name = new ObjectName("this.is.test:type=AttributeAccessAnnot,name=readWriteAttribute");
+
+        assertThat(obj.intValue).isEqualTo(42);
+        assertThat(mbeanServer.getAttribute(name, "methodReadWrite"))
+                .isNotNull()
+                .asInstanceOf(INTEGER).isEqualTo(42);
+
+        mbeanServer.setAttribute(name, new Attribute("methodReadWrite", 28));
+        assertThat(obj.intValue).isEqualTo(28);
+
+        assertThat(mbeanServer.getAttribute(name, "methodReadWrite"))
+                .isNotNull()
+                .asInstanceOf(INTEGER).isEqualTo(28);
+    }
+
+    @Test
+    public void getMethodMixedReadWriteAttributeTest() throws JMException {
+        AttributeAccessAnnot obj = new AttributeAccessAnnot();
+        server.registerAMBean(obj, "mixedReadWriteAttribute");
+        final ObjectName name = new ObjectName("this.is.test:type=AttributeAccessAnnot,name=mixedReadWriteAttribute");
+
+        assertThat(obj.methodMixedReadWrite).isEqualTo(42);
+        assertThat(mbeanServer.getAttribute(name, "methodMixedReadWrite"))
+                .isNotNull()
+                .asInstanceOf(INTEGER).isEqualTo(42);
+
+        mbeanServer.setAttribute(name, new Attribute("methodMixedReadWrite", 28));
+        assertThat(obj.methodMixedReadWrite).isEqualTo(28);
+
+        assertThat(mbeanServer.getAttribute(name, "methodMixedReadWrite"))
+                .isNotNull()
+                .asInstanceOf(INTEGER).isEqualTo(28);
+    }
+
+    @Test
+    public void getMethodMixedWriteReadAttributeTest() throws JMException {
+        AttributeAccessAnnot obj = new AttributeAccessAnnot();
+        server.registerAMBean(obj, "mixedWriteWriteAttribute");
+        final ObjectName name = new ObjectName("this.is.test:type=AttributeAccessAnnot,name=mixedWriteWriteAttribute");
+
+        assertThat(obj.methodMixedWriteRead).isEqualTo(42);
+        assertThat(mbeanServer.getAttribute(name, "methodMixedWriteRead"))
+                .isNotNull()
+                .asInstanceOf(INTEGER).isEqualTo(42);
+
+        mbeanServer.setAttribute(name, new Attribute("methodMixedWriteRead", 28));
+        assertThat(obj.methodMixedWriteRead).isEqualTo(28);
+
+        assertThat(mbeanServer.getAttribute(name, "methodMixedWriteRead"))
+                .isNotNull()
+                .asInstanceOf(INTEGER).isEqualTo(28);
     }
 
 }
