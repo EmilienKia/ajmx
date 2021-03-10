@@ -33,6 +33,17 @@ Then, using an existing ``MBeanServer`` instantiate a ``AjmxAdaptor``and registe
     MyClass obj2 = new MyClass();
     adaptor.registerAMBean(obj2, "AnotherName"); // Register another instance with an alternative name
 
+Build with 
+
+```xml
+<dependency>
+    <groupId>com.github.emilienkia.ajmx</groupId>
+    <artifactId>ajmx</artifactId>
+    <version>0.2.0-SNAPSHOT</version>
+</dependency>
+```
+
+
 ## How to build
 AJMX is a pure maven-based Java project.
 Just type ``mvn install`` to build, self test and install the library locally.
