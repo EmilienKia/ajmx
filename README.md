@@ -39,7 +39,7 @@ Build with
 <dependency>
     <groupId>com.github.emilienkia.ajmx</groupId>
     <artifactId>ajmx</artifactId>
-    <version>0.2.0-SNAPSHOT</version>
+    <version>0.2.0</version>
 </dependency>
 ```
 
