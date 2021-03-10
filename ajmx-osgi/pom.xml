@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.github.emilienkia</groupId>
+        <groupId>com.github.emilienkia.ajmx</groupId>
         <version>0.2.0-SNAPSHOT</version>
         <artifactId>ajmx-root</artifactId>
         <relativePath>../pom.xml</relativePath>

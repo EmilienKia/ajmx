@@ -84,7 +84,7 @@ public class RegistrationIT extends KarafTestSupport implements WithAssertions {
                 mavenBundle().groupId("org.assertj").artifactId("assertj-core").versionAsInProject(),
 
                 // Tested bundle
-                mavenBundle().groupId("com.github.emilienkia").artifactId("ajmx-osgi").versionAsInProject()
+                mavenBundle().groupId("com.github.emilienkia.ajmx").artifactId("ajmx-osgi").versionAsInProject()
         );
     }
 

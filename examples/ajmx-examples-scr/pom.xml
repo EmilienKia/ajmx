@@ -27,7 +27,7 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.emilienkia</groupId>
+            <groupId>com.github.emilienkia.ajmx</groupId>
             <artifactId>ajmx</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>

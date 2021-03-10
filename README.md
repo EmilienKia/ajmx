@@ -150,8 +150,8 @@ You can reference it on your own features repository file.
 
 Or you can install it, through command-line by adding the features.xml as features repository and install the feature:
 
-    karaf@root()> feature:repo-add mvn:com.github.emilienkia/ajmx-osgi/LATEST/xml/features
-    Adding feature url mvn:com.github.emilienkia/ajmx-osgi/LATEST/xml/features
+    karaf@root()> feature:repo-add mvn:com.github.emilienkia.ajmx/ajmx-osgi/LATEST/xml/features
+    Adding feature url mvn:com.github.emilienkia.ajmx/ajmx-osgi/LATEST/xml/features
     
     karaf@root()> feature:install ajmx-osgi 
 
