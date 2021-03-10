@@ -38,6 +38,7 @@
         <module>ajmx</module>
         <module>ajmx-osgi</module>
         <module>ajmx-it</module>
+        <module>examples</module>
     </modules>
 
     <properties>
