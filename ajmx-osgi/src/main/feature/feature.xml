@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.6.0" name="${project.artifactId}">
+
+    <feature name="${project.artifactId}" description="${project.description}" version="${project.version}">
+        <feature dependency="true" prerequisite="true">management</feature>
+
+        <capability>osgi.service;effective:=active;objectClass=com.github.emilienkia.ajmx.AjmxAdaptor</capability>
+    </feature>
+
+</features>

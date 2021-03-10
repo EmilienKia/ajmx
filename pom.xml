@@ -43,7 +43,7 @@
     <properties>
         <osgi.version>6.0.0</osgi.version>
         <slf4j.version>1.7.30</slf4j.version>
-        <karaf.version>4.2.9</karaf.version>
+        <karaf.version>4.2.10</karaf.version>
     </properties>
 
     <dependencyManagement>
@@ -121,6 +121,28 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <version>3.2.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.karaf.tooling</groupId>
+                    <artifactId>karaf-maven-plugin</artifactId>
+                    <version>${karaf.version}</version>
+                    <executions>
+                        <execution>
+                            <id>generate-features-file</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>features-generate-descriptor</goal>
+                            </goals>
+                            <configuration>
+                                <includeProjectArtifact>true</includeProjectArtifact>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>3.0.0</version>
                 </plugin>
             </plugins>
         </pluginManagement>
