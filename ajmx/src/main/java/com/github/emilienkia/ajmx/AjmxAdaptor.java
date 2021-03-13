@@ -25,6 +25,13 @@ public interface AjmxAdaptor {
     boolean hasAMBean(Object obj);
 
     /**
+     * Retrieve the object registered under the specified name.
+     * @param name Object name to look for. Shall be a fully specified name.
+     * @return The corresponding object if found, null otherwise.
+     */
+    Object get(ObjectName name) throws JMException;
+
+    /**
      * Register an object as annotated MBean.
      * @param obj Object to register.
      * @return JMX Object name onto which the AMBean is registered.
@@ -50,6 +57,24 @@ public interface AjmxAdaptor {
      * @throws NotAnAMBean Thrown if the object parameter is not an AMBean.
      */
     ObjectName registerAMBean(Object obj, String type, String name) throws JMException;
+
+    /**
+     * Replace the object registered wi the specified name by another object.
+     * New object shall strictly have the same type than the replaced object.
+     * @param name Name of the object to replace.
+     * @param other New object to set with this name.
+     * @return Replaced object.
+     */
+    Object replaceAMBean(ObjectName name, Object other) throws JMException;
+
+    /**
+     * Replace an object by another, keeping exactly the same name.
+     * Both object shall strictly have the same type.
+     * @param old Object to replace.
+     * @param other NEw object to set.
+     * @return Object name of the old and new objects.
+     */
+    ObjectName replaceAMBean(Object old, Object other) throws JMException;
 
     /**
      * Unregister an AMBean based on its object name.

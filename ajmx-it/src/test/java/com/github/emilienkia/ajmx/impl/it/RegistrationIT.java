@@ -9,6 +9,7 @@ import com.github.emilienkia.ajmx.impl.entities.DomainTypeAnnot;
 import com.github.emilienkia.ajmx.impl.entities.DomainTypeNameAnnot;
 import com.github.emilienkia.ajmx.impl.entities.EmptyAnnot;
 import com.github.emilienkia.ajmx.impl.entities.NoAnnot;
+import com.github.emilienkia.ajmx.impl.entities.Simple;
 import org.apache.karaf.itests.KarafTestSupport;
 import org.assertj.core.api.WithAssertions;
 import org.assertj.core.data.Offset;
@@ -312,6 +313,53 @@ public class RegistrationIT extends KarafTestSupport implements WithAssertions {
 
         Throwable thrown = catchThrowable(() -> mbeanServer.getObjectInstance(name));
         assertThat(thrown).isInstanceOf(JMException.class);
+
+    }
+
+
+
+
+    @Test
+    public void testReplaceByName() throws JMException {
+        Simple simple1 = new Simple();
+        simple1.value = 1;
+        Simple simple2 = new Simple();
+        simple2.value = 2;
+
+        ObjectName name = server.registerAMBean(simple1, "simple1");
+        assertThat(name).isNotNull();
+        assertThat(mbeanServer.getObjectInstance(name)).isNotNull();
+
+        Object value = mbeanServer.getAttribute(name, "value");
+        assertThat(value).isNotNull().isInstanceOf(Integer.class).isEqualTo(simple1.value);
+
+        Object ret = server.replaceAMBean(name, simple2);
+
+        assertThat(ret).isNotNull().isEqualTo(simple1);
+
+        value = mbeanServer.getAttribute(name, "value");
+        assertThat(value).isNotNull().isInstanceOf(Integer.class).isEqualTo(simple2.value);
+
+    }
+
+    @Test
+    public void testReplaceByObject() throws JMException {
+        Simple simple1 = new Simple();
+        simple1.value = 1;
+        Simple simple2 = new Simple();
+        simple2.value = 2;
+
+        ObjectName name = server.registerAMBean(simple1, "simple1");
+        assertThat(name).isNotNull();
+        assertThat(mbeanServer.getObjectInstance(name)).isNotNull();
+
+        Object value = mbeanServer.getAttribute(name, "value");
+        assertThat(value).isNotNull().isInstanceOf(Integer.class).isEqualTo(simple1.value);
+
+        server.replaceAMBean(simple1, simple2);
+
+        value = mbeanServer.getAttribute(name, "value");
+        assertThat(value).isNotNull().isInstanceOf(Integer.class).isEqualTo(simple2.value);
 
     }
 

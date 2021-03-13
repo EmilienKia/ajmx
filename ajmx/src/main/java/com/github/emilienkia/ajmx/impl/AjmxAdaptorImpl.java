@@ -157,6 +157,59 @@ public class AjmxAdaptorImpl implements AjmxAdaptor {
     }
 
     @Override
+    public Object get(ObjectName name) throws JMException {
+        return ambeans.entrySet().stream()
+                .filter(entry -> {
+                    try {
+                        return entry.getValue().getObjectName().compareTo(name) == 0;
+                    } catch (Throwable ex) {
+                        return false;
+                    }
+                })
+                .findAny()
+                .map(Map.Entry::getKey)
+                .orElse(null);
+    }
+
+    @Override
+    public Object replaceAMBean(ObjectName name, Object other) throws JMException {
+        Map.Entry<Object,Instance> entry =  ambeans.entrySet().stream()
+                .filter(e -> {
+                    try {
+                        return e.getValue().getObjectName().compareTo(name) == 0;
+                    } catch (Throwable ex) {
+                        return false;
+                    }
+                })
+                .findAny()
+                .orElseThrow(() -> new JMException("Object not found"));
+        Object old = entry.getKey();
+        if(!old.getClass().equals(other.getClass())) {
+            throw new JMException("Objects are not of the same class");
+        }
+        Instance instance = entry.getValue();
+        instance.object = other;
+        ambeans.put(other, instance);
+        ambeans.remove(old);
+        return old;
+    }
+
+    @Override
+    public ObjectName replaceAMBean(Object old, Object other) throws JMException {
+        Instance instance = ambeans.get(old);
+        if(instance==null) {
+            throw new JMException("Object not found");
+        }
+        if(!old.getClass().equals(other.getClass())) {
+            throw new JMException("Objects are not of the same class");
+        }
+        instance.object = other;
+        ambeans.put(other, instance);
+        ambeans.remove(old);
+        return instance.getObjectName();
+    }
+
+    @Override
     public void unregisterAMBean(ObjectName objName) throws JMException {
         for(Map.Entry<Object, Instance> entry : ambeans.entrySet()) {
             ObjectName name = entry.getValue().getObjectName();
