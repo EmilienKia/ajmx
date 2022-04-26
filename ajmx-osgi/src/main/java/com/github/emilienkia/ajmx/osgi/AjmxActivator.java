@@ -32,11 +32,18 @@ public class AjmxActivator  implements BundleActivator {
         mbeanServerServiceTracker = new ServiceTracker<>(context, MBeanServer.class, null){
             @Override
             public synchronized MBeanServer addingService(ServiceReference<MBeanServer> reference) {
-                MBeanServer server = super.addingService(reference);
-                if(server!=null && shouldReplaceCurrentMBeanServer(reference)) {
-                    replaceCurrent(server);
+                if (reference!=null) {
+                    try {
+                        MBeanServer server = super.addingService(reference);
+                        if (server != null && shouldReplaceCurrentMBeanServer(reference)) {
+                            replaceCurrent(server);
+                        }
+                        return server;
+                    } catch (Exception ex) {
+                        // Do nothing
+                    }
                 }
-                return server;
+                return null;
             }
             @Override
             public void modifiedService(ServiceReference<MBeanServer> reference, MBeanServer service) {
