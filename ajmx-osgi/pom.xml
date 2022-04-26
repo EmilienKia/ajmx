@@ -67,6 +67,8 @@
                         <Export-Package>!com.github.emilienkia.ajmx.impl,com.github.emilienkia.ajmx,com.github.emilienkia.ajmx.*</Export-Package>
                         <Private-Package>com.github.emilienkia.ajmx.impl</Private-Package>
                         <Bundle-Activator>com.github.emilienkia.ajmx.osgi.AjmxActivator</Bundle-Activator>
+                        <Provide-Capability>osgi.service;effective:=active;objectClass="com.github.emilienkia.ajmx.AjmxAdaptor"</Provide-Capability>
+                        <Require-Capability>osgi.service;effective:=active;filter:="(objectClass=javax.management.MBeanServer)"</Require-Capability>
                     </instructions>
                 </configuration>
             </plugin>
