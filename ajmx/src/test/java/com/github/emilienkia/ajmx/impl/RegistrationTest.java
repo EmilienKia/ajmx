@@ -19,6 +19,7 @@ import javax.management.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
 
 public class RegistrationTest implements WithAssertions {
 
@@ -165,13 +166,13 @@ public class RegistrationTest implements WithAssertions {
 
         assertThat(name).isNotNull();
 
-        assertThat(server.get(name)).isNotNull().isEqualTo(simple1);
+        assertThat(server.get(name)).isNotEmpty().get().isEqualTo(simple1);
 
         Object ret = server.replaceAMBean(name, simple2);
 
         assertThat(ret).isNotNull().isEqualTo(simple1);
 
-        assertThat(server.get(name)).isNotNull().isEqualTo(simple2);
+        assertThat(server.get(name)).isNotEmpty().get().isEqualTo(simple2);
 
     }
 
@@ -186,13 +187,29 @@ public class RegistrationTest implements WithAssertions {
 
         assertThat(name).isNotNull();
 
-        assertThat(server.get(name)).isNotNull().isEqualTo(simple1);
+        assertThat(server.get(name)).isNotEmpty().get().isEqualTo(simple1);
 
 
         server.replaceAMBean(simple1, simple2);
 
-        assertThat(server.get(name)).isNotNull().isEqualTo(simple2);
+        assertThat(server.get(name)).isNotEmpty().get().isEqualTo(simple2);
 
+    }
+
+    @Test
+    public void testFind() throws JMException {
+        Simple simple1 = new Simple();
+        simple1.value = 1;
+        Simple simple2 = new Simple();
+        simple2.value = 2;
+        DomainTypeNameAnnot obj = new DomainTypeNameAnnot();
+
+        ObjectName name1 = server.registerAMBean(simple1, "simple1");
+        ObjectName name2 = server.registerAMBean(simple2, "simple2");
+        ObjectName name3 = server.registerAMBean(obj);
+
+        Map<ObjectName, Object> res = server.find(new ObjectName("com.github.emilienkia.ajmx.impl.entities:type=Simple,*"));
+        assertThat(res).containsOnly(entry(name1, simple1), entry(name2, simple2));
     }
 
 }

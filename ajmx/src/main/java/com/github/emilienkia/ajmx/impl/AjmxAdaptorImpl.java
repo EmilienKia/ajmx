@@ -35,6 +35,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -43,6 +44,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class AjmxAdaptorImpl implements AjmxAdaptor {
@@ -159,7 +161,7 @@ public class AjmxAdaptorImpl implements AjmxAdaptor {
     }
 
     @Override
-    public Object get(ObjectName name) throws JMException {
+    public Optional<Object> get(ObjectName name) throws JMException {
         return ambeans.entrySet().stream()
                 .filter(entry -> {
                     try {
@@ -169,8 +171,22 @@ public class AjmxAdaptorImpl implements AjmxAdaptor {
                     }
                 })
                 .findAny()
-                .map(Map.Entry::getKey)
-                .orElse(null);
+                .map(Map.Entry::getKey);
+    }
+
+    @Override
+    public Map<ObjectName, Object> find(ObjectName pattern) throws JMException {
+        return ambeans.entrySet().stream()
+                .map(entry -> {
+                    try {
+                        return new AbstractMap.SimpleEntry<ObjectName, Object>(entry.getValue().getObjectName(), entry.getKey());
+                    } catch (Throwable ex) {
+                        return new AbstractMap.SimpleEntry<ObjectName, Object>(null, entry.getKey());
+                    }
+
+                })
+                .filter(entry -> entry.getKey()!=null && pattern.apply(entry.getKey()))
+                .collect(Collectors.toMap( Map.Entry::getKey, Map.Entry::getValue ));
     }
 
     @Override

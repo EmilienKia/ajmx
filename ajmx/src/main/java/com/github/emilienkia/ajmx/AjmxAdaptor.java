@@ -5,6 +5,9 @@ import com.github.emilienkia.ajmx.exceptions.NotAnAMBean;
 import javax.management.InstanceNotFoundException;
 import javax.management.JMException;
 import javax.management.ObjectName;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Interface of Annoted JMX server proxy.
@@ -30,7 +33,14 @@ public interface AjmxAdaptor {
      * @param name Object name to look for. Shall be a fully specified name.
      * @return The corresponding object if found, null otherwise.
      */
-    Object get(ObjectName name) throws JMException;
+    Optional<Object> get(ObjectName name) throws JMException;
+
+    /**
+     * Retrieve objects based on their object name, matching a name pattern.
+     * @param pattern Pattern to match.
+     * @return Map of objects indexed by their names.
+     */
+    Map<ObjectName, Object> find(ObjectName pattern) throws JMException;
 
     /**
      * Register an object as annotated MBean.
