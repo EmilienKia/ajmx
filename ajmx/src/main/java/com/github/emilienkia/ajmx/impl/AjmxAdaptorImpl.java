@@ -15,6 +15,7 @@ import javax.management.AttributeList;
 import javax.management.AttributeNotFoundException;
 import javax.management.DynamicMBean;
 import javax.management.InstanceAlreadyExistsException;
+import javax.management.InstanceNotFoundException;
 import javax.management.InvalidAttributeValueException;
 import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
@@ -38,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -211,12 +213,39 @@ public class AjmxAdaptorImpl implements AjmxAdaptor {
 
     @Override
     public void unregisterAMBean(ObjectName objName) throws JMException {
-        for(Map.Entry<Object, Instance> entry : ambeans.entrySet()) {
-            ObjectName name = entry.getValue().getObjectName();
-            if(name.equals(objName)) {
-                unregisterAMBean(entry.getKey());
+        if(objName==null) {
+            throw new IllegalArgumentException("ObjectName of bean to unregister cannot be null");
+        }
+        for(Iterator<Map.Entry<Object, Instance>> iterator = ambeans.entrySet().iterator(); iterator.hasNext();) {
+            Map.Entry<Object, Instance> entry = iterator.next();
+            if(entry.getValue().getObjectName().equals(objName)) {
+                logger.info("Unregister mbean : {}", objName);
+                mbeanServer.unregisterMBean(objName);
+                iterator.remove();
                 return;
             }
+        }
+        throw new InstanceNotFoundException("AMBean '" + objName + "' not found.");
+    }
+
+    @Override
+    public void unregisterAMBeans(ObjectName objPattern) throws JMException {
+        if(objPattern.isPattern()) {
+            ambeans.entrySet().removeIf(entry -> {
+                try {
+                    ObjectName name = entry.getValue().getObjectName();
+                    if(objPattern.apply(name)) {
+                        logger.info("Unregister mbean : {}", name);
+                        mbeanServer.unregisterMBean(name);
+                        return true;
+                    }
+                } catch(Exception ex) {
+                    // Ignore it
+                }
+                return false;
+            });
+        } else {
+            throw new IllegalArgumentException("Specified object pattern must be a valid MBean name pattern");
         }
     }
 

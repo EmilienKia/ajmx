@@ -2,6 +2,7 @@ package com.github.emilienkia.ajmx;
 
 import com.github.emilienkia.ajmx.exceptions.NotAnAMBean;
 
+import javax.management.InstanceNotFoundException;
 import javax.management.JMException;
 import javax.management.ObjectName;
 
@@ -79,8 +80,15 @@ public interface AjmxAdaptor {
     /**
      * Unregister an AMBean based on its object name.
      * @param objName Object name of the AMBean to unregister.
+     * @throws InstanceNotFoundException If no AMBean with specified name is found.
      */
     void unregisterAMBean(ObjectName objName) throws JMException;
+
+    /**
+     * Unregister AMBeans based on their object name corresponding to the specified pattern.
+     * @param objPattern Pattern of object name of AMBeans to unregister.
+     */
+    void unregisterAMBeans(ObjectName objPattern) throws JMException;
 
     /**
      * Unregister an AMBean.

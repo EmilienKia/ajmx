@@ -2,7 +2,6 @@ package com.github.emilienkia.ajmx.impl.it;
 
 import com.github.emilienkia.ajmx.AjmxAdaptor;
 import com.github.emilienkia.ajmx.annotations.MBean;
-import com.github.emilienkia.ajmx.annotations.MBeanAttribute;
 import com.github.emilienkia.ajmx.exceptions.NotAnAMBean;
 import com.github.emilienkia.ajmx.impl.entities.DomainAnnot;
 import com.github.emilienkia.ajmx.impl.entities.DomainTypeAnnot;
@@ -12,7 +11,6 @@ import com.github.emilienkia.ajmx.impl.entities.NoAnnot;
 import com.github.emilienkia.ajmx.impl.entities.Simple;
 import org.apache.karaf.itests.KarafTestSupport;
 import org.assertj.core.api.WithAssertions;
-import org.assertj.core.data.Offset;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -32,21 +30,13 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceRegistration;
 
 import javax.inject.Inject;
-import javax.management.Attribute;
-import javax.management.AttributeList;
-import javax.management.AttributeNotFoundException;
 import javax.management.InstanceNotFoundException;
 import javax.management.JMException;
-import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanInfo;
 import javax.management.MBeanServer;
 import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 import java.io.File;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.List;
 
 import static org.ops4j.pax.exam.CoreOptions.maven;
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
@@ -317,6 +307,50 @@ public class RegistrationIT extends KarafTestSupport implements WithAssertions {
     }
 
 
+    @Test
+    public void unregisterUnknownObjectNameTest() throws Exception {
+
+        DomainTypeNameAnnot obj = new DomainTypeNameAnnot();
+        ObjectName name = server.registerAMBean(obj);
+
+        assertThat(mbeanServer.getObjectInstance(name)).isNotNull();
+
+        Throwable thrown = catchThrowable(() -> server.unregisterAMBean(new ObjectName("this.is.test", "MyType", "AnotherName")));
+        assertThat(thrown).isInstanceOf(InstanceNotFoundException.class);
+
+    }
+
+    @Test
+    public void unregisterObjectNamePatternTest() throws Exception {
+        Simple simple1 = new Simple();
+        simple1.value = 1;
+        Simple simple2 = new Simple();
+        simple2.value = 2;
+        Simple simple3 = new Simple();
+        simple3.value = 3;
+
+        ObjectName name1 = server.registerAMBean(simple1, "simple1");
+        ObjectName name2 = server.registerAMBean(simple2, "simple2");
+        ObjectName name3 = server.registerAMBean(simple3, "notsimple");
+
+        System.out.println("name1 = " + name1.toString());
+        System.out.println("name2 = " + name2.toString());
+        System.out.println("name3 = " + name3.toString());
+
+        assertThat(mbeanServer.getObjectInstance(name1)).isNotNull();
+        assertThat(mbeanServer.getObjectInstance(name2)).isNotNull();
+        assertThat(mbeanServer.getObjectInstance(name3)).isNotNull();
+
+        server.unregisterAMBeans(new ObjectName("com.github.emilienkia.ajmx.impl.entities:type=Simple,name=simple*"));
+
+        Throwable thrown1 = catchThrowable(() -> mbeanServer.getObjectInstance(name1));
+        assertThat(thrown1).isInstanceOf(InstanceNotFoundException.class);
+
+        Throwable thrown2 = catchThrowable(() -> mbeanServer.getObjectInstance(name2));
+        assertThat(thrown2).isInstanceOf(InstanceNotFoundException.class);
+
+        assertThat(mbeanServer.getObjectInstance(name3)).isNotNull();
+    }
 
 
     @Test
